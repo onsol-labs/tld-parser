@@ -7,9 +7,6 @@ import {NameRecordHeader} from './state';
 /**
  * retrieves raw name account
  *
- * If the secretKey parameter is not provided a new key pair is randomly
- * created for the account
- *
  * @param hashedName hashed name of the name account
  * @param nameClass defaults to pubkey::default()
  * @param parentName defaults to pubkey::default()
@@ -75,7 +72,6 @@ export async function getOriginNameAccountKey(
 
 /**
  * finds list of all name accounts for a particular user.
- *
  *
  * @param connection sol connection
  * @param userAccount user's public key
