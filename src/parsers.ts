@@ -1,4 +1,4 @@
-import {PublicKey, Connection} from '@solana/web3.js';
+import { PublicKey, Connection } from '@solana/web3.js';
 
 import {
   findOwnedNameAccountsForUser,
@@ -49,7 +49,7 @@ export async function getAllUserDomainsFromTld(
 export async function getOwnerFromDomainTld(
   connection: Connection,
   domainTld: string,
-): Promise<PublicKey> {
+): Promise<PublicKey | undefined> {
   const domainTldSplit = domainTld.split('.');
   const domain = domainTldSplit[0];
   const tldName = '.' + domainTldSplit[1];

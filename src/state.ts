@@ -1,5 +1,5 @@
-import {Connection, PublicKey} from '@solana/web3.js';
-import {deserializeUnchecked, Schema} from 'borsh';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { deserializeUnchecked, Schema } from 'borsh';
 
 /**
  * Holds the data for the {@link NameRecordHeader} Account and provides de/serialization
@@ -25,7 +25,7 @@ export class NameRecordHeader {
   static HASH_PREFIX = 'ALT Name Service';
 
   /**
-   * NameRecordHeader Schema across all name service accounts
+   * NameRecordHeader Schema across all alt name service accounts
    */
   static schema: Schema = new Map([
     [
@@ -54,19 +54,17 @@ export class NameRecordHeader {
   /**
    * Retrieves the account info from the provided address and deserializes
    * the {@link NameRecordHeader} from its data.
-   *
-   * @throws Error if no account info is found at the address or if deserialization fails
    */
   public static async fromAccountAddress(
     connection: Connection,
     nameAccountKey: PublicKey,
-  ): Promise<NameRecordHeader> {
+  ): Promise<NameRecordHeader | undefined> {
     const nameAccount = await connection.getAccountInfo(
       nameAccountKey,
       'confirmed',
     );
     if (!nameAccount) {
-      throw new Error('Invalid name account provided');
+      return undefined
     }
 
     const res: NameRecordHeader = deserializeUnchecked(

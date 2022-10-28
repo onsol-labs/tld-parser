@@ -1,8 +1,8 @@
-import {Connection, PublicKey} from '@solana/web3.js';
-import {createHash} from 'crypto';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { createHash } from 'crypto';
 
-import {ANS_PROGRAM_ID, ORIGIN_TLD} from './constants';
-import {NameRecordHeader} from './state';
+import { ANS_PROGRAM_ID, ORIGIN_TLD } from './constants';
+import { NameRecordHeader } from './state';
 
 /**
  * retrieves raw name account
@@ -29,20 +29,19 @@ export async function getNameAccountKeyWithBump(
  * retrieves owner of the name account
  *
  * @param connection sol connection
- * @param nameAccountKey defaults to pubkey::default()
+ * @param nameAccountKey nameAccount to get owner of.
  */
 export async function getNameOwner(
   connection: Connection,
   nameAccountKey: PublicKey,
-): Promise<PublicKey> {
-  return (await NameRecordHeader.fromAccountAddress(connection, nameAccountKey))
-    .owner;
+): Promise<PublicKey | undefined> {
+  return (await NameRecordHeader.fromAccountAddress(connection, nameAccountKey))?.owner;
 }
 
 /**
  * computes hashed name
  *
- * @param name any string or domain name
+ * @param name any string or domain name.
  */
 
 export function getHashedName(name: string): Buffer {
