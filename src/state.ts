@@ -16,7 +16,7 @@ export class NameRecordHeader {
     this.parentName = new PublicKey(obj.parentName);
     this.nclass = new PublicKey(obj.nclass);
     this.expiresAt = new Date(new BinaryReader(Buffer.from(obj.expiresAt)).readU64().toNumber() * 1000);
-    this.isValid = this.expiresAt > new Date();
+    this.isValid = (new BinaryReader(Buffer.from(obj.expiresAt)).readU64().toNumber() === 0) ? true : this.expiresAt > new Date();
     this.owner = this.isValid ? new PublicKey(obj.owner) : undefined;
   }
 
@@ -93,7 +93,7 @@ export class NameRecordHeader {
     const indexOf0 = this.data.indexOf(0x00);
     return {
       parentName: this.parentName.toBase58(),
-      owner: this.owner.toBase58(),
+      owner: this.owner ? this.owner.toBase58() : undefined,
       nclass: this.nclass.toBase58(),
       expiresAt: this.expiresAt,
       isValid: this.isValid,
