@@ -1,4 +1,5 @@
 import { PublicKey, Connection } from '@solana/web3.js';
+import { NameRecordHeader } from './state';
 
 import {
   findOwnedNameAccountsForUser,
@@ -71,4 +72,37 @@ export async function getOwnerFromDomainTld(
 
   const nameOwner = await getNameOwner(connection, domainAccountKey);
   return nameOwner;
+}
+
+/**
+ * retrieves domainTld data a domain from domain.tld.
+ *
+ * @param connection sol connection
+ * @param domainTld full string of domain and tld e.g. "miester.poor"
+ */
+export async function getNameRecordFromDomainTld(
+  connection: Connection,
+  domainTld: string,
+): Promise<NameRecordHeader | undefined> {
+  const domainTldSplit = domainTld.split('.');
+  const domain = domainTldSplit[0];
+  const tldName = '.' + domainTldSplit[1];
+
+  const nameOriginTldKey = await getOriginNameAccountKey();
+  const parentHashedName = getHashedName(tldName);
+  const [parentAccountKey] = await getNameAccountKeyWithBump(
+    parentHashedName,
+    undefined,
+    nameOriginTldKey,
+  );
+
+  const domainHashedName = getHashedName(domain);
+  const [domainAccountKey] = await getNameAccountKeyWithBump(
+    domainHashedName,
+    undefined,
+    parentAccountKey,
+  );
+
+  const nameRecord = await NameRecordHeader.fromAccountAddress(connection, domainAccountKey);
+  return nameRecord;
 }

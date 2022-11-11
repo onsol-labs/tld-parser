@@ -1,5 +1,6 @@
 import { Connection, PublicKey } from '@solana/web3.js';
-import { deserializeUnchecked, Schema } from 'borsh';
+import { BN } from 'bn.js';
+import { BinaryReader, deserializeUnchecked, Schema } from 'borsh';
 
 /**
  * Holds the data for the {@link NameRecordHeader} Account and provides de/serialization
@@ -10,15 +11,20 @@ export class NameRecordHeader {
     parentName: Uint8Array;
     owner: Uint8Array;
     nclass: Uint8Array;
+    expiresAt: Uint8Array;
   }) {
     this.parentName = new PublicKey(obj.parentName);
-    this.owner = new PublicKey(obj.owner);
     this.nclass = new PublicKey(obj.nclass);
+    this.expiresAt = new Date(new BinaryReader(Buffer.from(obj.expiresAt)).readU64().toNumber() * 1000);
+    this.isValid = this.expiresAt > new Date();
+    this.owner = this.isValid ? new PublicKey(obj.owner) : undefined;
   }
 
   parentName: PublicKey;
-  owner: PublicKey;
+  owner: PublicKey | undefined;
   nclass: PublicKey;
+  expiresAt: Date;
+  isValid: boolean;
   data: Buffer | undefined;
 
   static DISCRIMINATOR = [68, 72, 88, 44, 15, 167, 103, 243];
@@ -37,7 +43,8 @@ export class NameRecordHeader {
           ['parentName', [32]],
           ['owner', [32]],
           ['nclass', [32]],
-          ['padding', [96]],
+          ['expiresAt', [8]],
+          ['padding', [88]]
         ],
       },
     ],
@@ -48,7 +55,7 @@ export class NameRecordHeader {
    * {@link NameRecordHeader}
    */
   static get byteSize() {
-    return 8 + 32 + 32 + 32 + 96;
+    return 8 + 32 + 32 + 32 + 8 + 88;
   }
 
   /**
@@ -83,10 +90,14 @@ export class NameRecordHeader {
    * and can be used to convert to JSON and/or logging
    */
   pretty() {
+    const indexOf0 = this.data.indexOf(0x00);
     return {
       parentName: this.parentName.toBase58(),
       owner: this.owner.toBase58(),
       nclass: this.nclass.toBase58(),
+      expiresAt: this.expiresAt,
+      isValid: this.isValid,
+      data: this.isValid ? this.data.subarray(0, indexOf0).toString() : undefined
     };
   }
 }

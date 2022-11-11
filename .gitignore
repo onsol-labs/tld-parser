@@ -24,3 +24,5 @@ module.flow.js
 
 # TypeScript
 declarations
+
+dist

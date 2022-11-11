@@ -1,6 +1,6 @@
 {
   "name": "@onsol/tldparser",
-  "version": "0.0.1",
+  "version": "0.3.0",
   "description": "TLD House (Solana) Javascript API",
   "keywords": [
     "api",
@@ -27,6 +27,7 @@
     "/src"
   ],
   "scripts": {
+    "build": "tsc",
     "lint": "set -ex; npm run pretty; eslint . --ext .js,.ts",
     "lint:fix": "npm run pretty:fix && eslint . --fix --ext .js,.ts",
     "pretty": "prettier --check '{,{src,test}/**/}*.{j,t}s'",
