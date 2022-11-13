@@ -26,6 +26,7 @@
   "files": [
     "/src"
   ],
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "lint": "set -ex; npm run pretty; eslint . --ext .js,.ts",

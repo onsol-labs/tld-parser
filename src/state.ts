@@ -93,7 +93,7 @@ export class NameRecordHeader {
     const indexOf0 = this.data.indexOf(0x00);
     return {
       parentName: this.parentName.toBase58(),
-      owner: this.owner ? this.owner.toBase58() : undefined,
+      owner: this.owner?.toBase58(),
       nclass: this.nclass.toBase58(),
       expiresAt: this.expiresAt,
       isValid: this.isValid,
