@@ -6,9 +6,8 @@ library to parse tld house domains via alternative name service (ANS) on the Sol
 current functions and how to use them.
 
 ### initialize
+the library only works in mainnet. the devnet values are in constants.ts file
 ```js
-// the library only works in mainnet. 
-// the devnet values are in constants.ts file
 const RPC_URL = 'https://api.mainnet-beta.solana.com';
 const connection = new Connection(RPC_URL);
 
@@ -20,29 +19,33 @@ const parser = new TldParser(connection);
 ### list of all domains owned by owner
 ```js
 const allDomains = await parser.getAllUserDomains(owner); 
+// list of name record header publickeys owned by user
 ```
 ### list of all domains owned by owner in a tld
 ```js
 const tld = 'poor';
-const ownedDomainsReceived = await parser.getAllUserDomainsFromTld(owner, tld);
+const ownedDomains = await parser.getAllUserDomainsFromTld(owner, tld);
+// list of name record header publickeys owned by user in a tld
 ```
 ### get the owner of a domain and a tld
 ```js
 const domanTld = 'miester.poor';
-const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
+const owner = await parser.getOwnerFromDomainTld(domanTld);
+// owner pubkey
 ```
 ### get the nameRecord of a domain and a tld
 ```js
 
 const domanTld = 'miester.poor';
-const nameRecordRecieved = await parser.getNameRecordFromDomainTld(domanTld);
-// if domain is expired owner and data fields would be null
+const nameRecord = await parser.getNameRecordFromDomainTld(domanTld);
+// a NameRecordHeader state
+// if domain is expired, owner and data fields would be undefined
 
 ```
 ### get the tld from a parentAccount
 
 ```js
-const tld = await parser.getTldFromParentAccount(nameRecordRecieved.parentName);
+const tld = await parser.getTldFromParentAccount(nameRecord.parentName);
 // .poor
 ```
 ### get the domain from a parentAccountOwner (TldHouse Account)
