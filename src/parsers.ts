@@ -14,7 +14,7 @@ export class TldParser {
   constructor(private readonly connection: Connection) { }
 
   /**
-   * retrieves all nameaccounts for any user.
+   * retrieves all nameAccounts for any user.
    *
    * @param userAccount user publickey or string
    */
@@ -148,7 +148,7 @@ export class TldParser {
     const tldStart = 8 + 32 + 32 + 32 + 32;
     const tldBuffer = tldHouseData?.data
       .subarray(tldStart, tldHouseData.data.length)
-    const tld = new BinaryReader(tldBuffer).readString().toString();
+    const tld = new BinaryReader(tldBuffer).readString();
     return tld;
   }
   /**
