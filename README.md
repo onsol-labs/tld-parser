@@ -53,21 +53,21 @@ const domain = await parser.reverseLookupNameAccount(nameAccount, parentNameReco
 current state is the NameRecordHeader, it is the data retrieved from any ANS account.
 
 the account structure:
-- parentName: PublicKey;
+- `parentName: PublicKey;`
 
 parent is a name account that can have many children (name accounts)
-- owner: PublicKey | undefined;
+- `owner: PublicKey | undefined;`
 
 name account owner can be undefined if the name account has expired
-- nclass: PublicKey;
+- `nclass: PublicKey;`
 
 name class is an account that holds an account state (Main domain, DNS, Subdomains) or can be Publickey.default
-- expiresAt: Date;
+- `expiresAt: Date;`
 
 the date by which the name account will expire. would be 0 if non expirable domains
-- isValid: boolean;
+- `isValid: boolean;`
 
 only valid for expirable domains
-- data: Buffer | undefined;
+- `data: Buffer | undefined;`
 
 any data that is held by the name account
