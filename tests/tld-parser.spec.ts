@@ -61,5 +61,4 @@ describe('tldParser tests', () => {
         const domain = await parser.reverseLookupNameAccount(nameAccount, parentAccountOwner);
         expect(domain).toStrictEqual(expect.stringContaining("miester"))
     });
-
 });

@@ -3,55 +3,49 @@
 library to parse tld house domains via alternative name service (ANS) on the Solana Blockchain. 
 
 ## Examples
-current functions and how to use them.
+current functions and how to use them. 
 
-### initialize
-the library only works in mainnet. the devnet values are in constants.ts file
+the library only works in mainnet. 
+
+the devnet values are in constants.ts file
+
+the example below is a replica of the tests in `tests` folder
+
 ```js
+// initialize
 const RPC_URL = 'https://api.mainnet-beta.solana.com';
 const connection = new Connection(RPC_URL);
 
 // any owner
 const owner = new PublicKey("owner pubkey");
-
 const parser = new TldParser(connection);
-```
-### list of all domains owned by owner
-```js
-const allDomains = await parser.getAllUserDomains(owner); 
+
 // list of name record header publickeys owned by user
-```
-### list of all domains owned by owner in a tld
-```js
+const allDomains = await parser.getAllUserDomains(owner); 
+// ["6iE5btnTaan1eqfnwChLdVAyFERdn5uCVnp5GiXVg1aB"]
+
 const tld = 'poor';
-const ownedDomains = await parser.getAllUserDomainsFromTld(owner, tld);
 // list of name record header publickeys owned by user in a tld
-```
-### get the owner of a domain and a tld
-```js
+const ownedDomains = await parser.getAllUserDomainsFromTld(owner, tld);
+// ["6iE5btnTaan1eqfnwChLdVAyFERdn5uCVnp5GiXVg1aB"]
+
+// retrieve owner of a particular domain Tld
 const domanTld = 'miester.poor';
 const owner = await parser.getOwnerFromDomainTld(domanTld);
 // owner pubkey
-```
-### get the nameRecord of a domain and a tld
-```js
 
-const domanTld = 'miester.poor';
+// retrieve NameRecordHeader of a particular domain Tld
 const nameRecord = await parser.getNameRecordFromDomainTld(domanTld);
 // a NameRecordHeader state
 // if domain is expired, owner and data fields would be undefined
 
-```
-### get the tld from a parentAccount
-
-```js
-const tld = await parser.getTldFromParentAccount(nameRecord.parentName);
+// retrieve tld of a particular domain Tld
+const tldReceived = await parser.getTldFromParentAccount(nameRecord.parentName);
 // .poor
-```
-### get the domain from a parentAccountOwner (TldHouse Account)
 
-```js
-const domain = await parser.reverseLookupNameAccount(nameAccount, parentAccountOwner);
+// retrieve domain of a particular nameAccount with parentAccountOwner (TldHouse) in our case .poor
+const parentNameRecord = await NameRecordHeader.fromAccountAddress(connection, nameRecord?.parentName);
+const domain = await parser.reverseLookupNameAccount(nameAccount, parentNameRecord?.owner);
 // miester
 ```
 
