@@ -1,8 +1,8 @@
-import { Connection, PublicKey } from '@solana/web3.js';
-import { createHash } from 'crypto';
+import {Connection, PublicKey} from '@solana/web3.js';
+import {createHash} from 'crypto';
 
-import { ANS_PROGRAM_ID, ORIGIN_TLD } from './constants';
-import { NameRecordHeader } from './state';
+import {ANS_PROGRAM_ID, ORIGIN_TLD} from './constants';
+import {NameRecordHeader} from './state';
 
 /**
  * retrieves raw name account
@@ -35,7 +35,8 @@ export async function getNameOwner(
   connection: Connection,
   nameAccountKey: PublicKey,
 ): Promise<PublicKey | undefined> {
-  return (await NameRecordHeader.fromAccountAddress(connection, nameAccountKey))?.owner;
+  return (await NameRecordHeader.fromAccountAddress(connection, nameAccountKey))
+    ?.owner;
 }
 
 /**

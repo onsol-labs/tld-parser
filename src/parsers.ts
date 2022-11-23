@@ -1,6 +1,7 @@
 import { PublicKey, Connection } from '@solana/web3.js';
-import { NameRecordHeader } from './state';
+import { BinaryReader } from 'borsh';
 
+import { NameRecordHeader } from './state';
 import {
   findOwnedNameAccountsForUser,
   getHashedName,
@@ -9,100 +10,178 @@ import {
   getOriginNameAccountKey,
 } from './utils';
 
-/**
- * retrieves all nameaccounts for any user in a particular tld.
- *
- * @param connection sol connection
- * @param userAccount user publickey or string
- * @param tld tld to be retrieved from
- */
-export async function getAllUserDomainsFromTld(
-  connection: Connection,
-  userAccount: PublicKey | string,
-  tld: string,
-): Promise<PublicKey[]> {
-  const tldName = '.' + tld;
+export class TldParser {
+  constructor(private readonly connection: Connection) { }
 
-  const nameOriginTldKey = await getOriginNameAccountKey();
-  const parentHashedName = getHashedName(tldName);
-  const [parentAccountKey] = await getNameAccountKeyWithBump(
-    parentHashedName,
-    undefined,
-    nameOriginTldKey,
-  );
-  if (typeof userAccount == 'string') {
-    userAccount = new PublicKey(userAccount);
+  /**
+   * retrieves all nameaccounts for any user.
+   *
+   * @param userAccount user publickey or string
+   */
+  async getAllUserDomains(
+    userAccount: PublicKey | string,
+  ): Promise<PublicKey[]> {
+    if (typeof userAccount == 'string') {
+      userAccount = new PublicKey(userAccount);
+    }
+    const allDomains = await findOwnedNameAccountsForUser(
+      this.connection,
+      userAccount,
+      undefined,
+    );
+    return allDomains;
   }
-  const allDomains = await findOwnedNameAccountsForUser(
-    connection,
-    userAccount,
-    parentAccountKey,
-  );
-  return allDomains;
-}
 
-/**
- * retrieves owner of a particular Name Account from domain.tld.
- *
- * @param connection sol connection
- * @param domainTld full string of domain and tld e.g. "miester.poor"
- */
-export async function getOwnerFromDomainTld(
-  connection: Connection,
-  domainTld: string,
-): Promise<PublicKey | undefined> {
-  const domainTldSplit = domainTld.split('.');
-  const domain = domainTldSplit[0];
-  const tldName = '.' + domainTldSplit[1];
+  /**
+   * retrieves all nameaccounts for any user in a particular tld.
+   *
+   * @param userAccount user publickey or string
+   * @param tld tld to be retrieved from
+   */
+  async getAllUserDomainsFromTld(
+    userAccount: PublicKey | string,
+    tld: string,
+  ): Promise<PublicKey[]> {
+    const tldName = '.' + tld;
 
-  const nameOriginTldKey = await getOriginNameAccountKey();
-  const parentHashedName = getHashedName(tldName);
-  const [parentAccountKey] = await getNameAccountKeyWithBump(
-    parentHashedName,
-    undefined,
-    nameOriginTldKey,
-  );
+    const nameOriginTldKey = await getOriginNameAccountKey();
+    const parentHashedName = getHashedName(tldName);
+    const [parentAccountKey] = await getNameAccountKeyWithBump(
+      parentHashedName,
+      undefined,
+      nameOriginTldKey,
+    );
+    if (typeof userAccount == 'string') {
+      userAccount = new PublicKey(userAccount);
+    }
+    const allDomains = await findOwnedNameAccountsForUser(
+      this.connection,
+      userAccount,
+      parentAccountKey,
+    );
+    return allDomains;
+  }
 
-  const domainHashedName = getHashedName(domain);
-  const [domainAccountKey] = await getNameAccountKeyWithBump(
-    domainHashedName,
-    undefined,
-    parentAccountKey,
-  );
+  /**
+   * retrieves owner of a particular Name Account from domain.tld.
+   *
+   * @param domainTld full string of domain and tld e.g. "miester.poor"
+   */
+  async getOwnerFromDomainTld(
+    domainTld: string,
+  ): Promise<PublicKey | undefined> {
+    const domainTldSplit = domainTld.split('.');
+    const domain = domainTldSplit[0];
+    const tldName = '.' + domainTldSplit[1];
 
-  const nameOwner = await getNameOwner(connection, domainAccountKey);
-  return nameOwner;
-}
+    const nameOriginTldKey = await getOriginNameAccountKey();
+    const parentHashedName = getHashedName(tldName);
+    const [parentAccountKey] = await getNameAccountKeyWithBump(
+      parentHashedName,
+      undefined,
+      nameOriginTldKey,
+    );
 
-/**
- * retrieves domainTld data a domain from domain.tld.
- *
- * @param connection sol connection
- * @param domainTld full string of domain and tld e.g. "miester.poor"
- */
-export async function getNameRecordFromDomainTld(
-  connection: Connection,
-  domainTld: string,
-): Promise<NameRecordHeader | undefined> {
-  const domainTldSplit = domainTld.split('.');
-  const domain = domainTldSplit[0];
-  const tldName = '.' + domainTldSplit[1];
+    const domainHashedName = getHashedName(domain);
+    const [domainAccountKey] = await getNameAccountKeyWithBump(
+      domainHashedName,
+      undefined,
+      parentAccountKey,
+    );
 
-  const nameOriginTldKey = await getOriginNameAccountKey();
-  const parentHashedName = getHashedName(tldName);
-  const [parentAccountKey] = await getNameAccountKeyWithBump(
-    parentHashedName,
-    undefined,
-    nameOriginTldKey,
-  );
+    const nameOwner = await getNameOwner(this.connection, domainAccountKey);
+    return nameOwner;
+  }
 
-  const domainHashedName = getHashedName(domain);
-  const [domainAccountKey] = await getNameAccountKeyWithBump(
-    domainHashedName,
-    undefined,
-    parentAccountKey,
-  );
+  /**
+   * retrieves domainTld data a domain from domain.tld.
+   *
+   * @param domainTld full string of domain and tld e.g. "miester.poor"
+   */
+  async getNameRecordFromDomainTld(
+    domainTld: string,
+  ): Promise<NameRecordHeader | undefined> {
+    const domainTldSplit = domainTld.split('.');
+    const domain = domainTldSplit[0];
+    const tldName = '.' + domainTldSplit[1];
 
-  const nameRecord = await NameRecordHeader.fromAccountAddress(connection, domainAccountKey);
-  return nameRecord;
+    const nameOriginTldKey = await getOriginNameAccountKey();
+    const parentHashedName = getHashedName(tldName);
+    const [parentAccountKey] = await getNameAccountKeyWithBump(
+      parentHashedName,
+      undefined,
+      nameOriginTldKey,
+    );
+
+    const domainHashedName = getHashedName(domain);
+    const [domainAccountKey] = await getNameAccountKeyWithBump(
+      domainHashedName,
+      undefined,
+      parentAccountKey,
+    );
+    const nameRecord = await NameRecordHeader.fromAccountAddress(
+      this.connection,
+      domainAccountKey,
+    );
+    return nameRecord;
+  }
+
+  /**
+   * retrieves tld from parent name via TldHouse account.
+   *
+   * @param parentAccount parent publickey or string
+   */
+  async getTldFromParentAccount(
+    parentAccount: PublicKey | string,
+  ): Promise<string> {
+    if (typeof parentAccount == 'string') {
+      parentAccount = new PublicKey(parentAccount);
+    }
+    const parentNameAccount = await NameRecordHeader.fromAccountAddress(
+      this.connection,
+      parentAccount,
+    );
+
+    const tldHouseData = await this.connection.getAccountInfo(
+      parentNameAccount?.owner!,
+    );
+    const tldStart = 8 + 32 + 32 + 32 + 32;
+    const tldBuffer = tldHouseData?.data
+      .subarray(tldStart, tldHouseData.data.length)
+    const tld = new BinaryReader(tldBuffer).readString().toString();
+    return tld;
+  }
+  /**
+   * retrieves domain from name account via tldParent account.
+   *
+   * @param nameAccount name publickey or string
+   * @param parentAccountOwner parent Owner or string (TldHouse)
+   */
+  async reverseLookupNameAccount(
+    nameAccount: PublicKey | string,
+    parentAccountOwner: PublicKey | string,
+  ): Promise<string> {
+    if (typeof nameAccount == 'string') {
+      nameAccount = new PublicKey(nameAccount);
+    }
+    if (typeof parentAccountOwner == 'string') {
+      parentAccountOwner = new PublicKey(parentAccountOwner);
+    }
+
+    const reverseLookupHashedName = await getHashedName(
+      nameAccount.toString(),
+    );
+    const [reverseLookupAccount] = await getNameAccountKeyWithBump(
+      reverseLookupHashedName,
+      parentAccountOwner,
+      undefined,
+    );
+
+    const reverseLookUpResult = await NameRecordHeader.fromAccountAddress(
+      this.connection,
+      reverseLookupAccount,
+    );
+    const domain = reverseLookUpResult.data.toString();
+    return domain;
+  }
 }

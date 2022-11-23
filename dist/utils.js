@@ -1,19 +1,20 @@
-"use strict";
+'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator['throw'](value)); } catch (e) { reject(e); } }
         function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 exports.findOwnedNameAccountsForUser = exports.getOriginNameAccountKey = exports.getHashedName = exports.getNameOwner = exports.getNameAccountKeyWithBump = void 0;
-const web3_js_1 = require("@solana/web3.js");
-const crypto_1 = require("crypto");
-const constants_1 = require("./constants");
-const state_1 = require("./state");
+const web3_js_1 = require('@solana/web3.js');
+const crypto_1 = require('crypto');
+
+const constants_1 = require('./constants');
+const state_1 = require('./state');
 /**
  * retrieves raw name account
  *

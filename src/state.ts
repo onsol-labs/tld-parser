@@ -1,6 +1,6 @@
-import { Connection, PublicKey } from '@solana/web3.js';
-import { BN } from 'bn.js';
-import { BinaryReader, deserializeUnchecked, Schema } from 'borsh';
+import {Connection, PublicKey} from '@solana/web3.js';
+import {BN} from 'bn.js';
+import {BinaryReader, deserializeUnchecked, Schema} from 'borsh';
 
 /**
  * Holds the data for the {@link NameRecordHeader} Account and provides de/serialization
@@ -15,8 +15,13 @@ export class NameRecordHeader {
   }) {
     this.parentName = new PublicKey(obj.parentName);
     this.nclass = new PublicKey(obj.nclass);
-    this.expiresAt = new Date(new BinaryReader(Buffer.from(obj.expiresAt)).readU64().toNumber() * 1000);
-    this.isValid = (new BinaryReader(Buffer.from(obj.expiresAt)).readU64().toNumber() === 0) ? true : this.expiresAt > new Date();
+    this.expiresAt = new Date(
+      new BinaryReader(Buffer.from(obj.expiresAt)).readU64().toNumber() * 1000,
+    );
+    this.isValid =
+      new BinaryReader(Buffer.from(obj.expiresAt)).readU64().toNumber() === 0
+        ? true
+        : this.expiresAt > new Date();
     this.owner = this.isValid ? new PublicKey(obj.owner) : undefined;
   }
 
@@ -44,7 +49,7 @@ export class NameRecordHeader {
           ['owner', [32]],
           ['nclass', [32]],
           ['expiresAt', [8]],
-          ['padding', [88]]
+          ['padding', [88]],
         ],
       },
     ],
@@ -71,7 +76,7 @@ export class NameRecordHeader {
       'confirmed',
     );
     if (!nameAccount) {
-      return undefined
+      return undefined;
     }
 
     const res: NameRecordHeader = deserializeUnchecked(
@@ -97,7 +102,9 @@ export class NameRecordHeader {
       nclass: this.nclass.toBase58(),
       expiresAt: this.expiresAt,
       isValid: this.isValid,
-      data: this.isValid ? this.data.subarray(0, indexOf0).toString() : undefined
+      data: this.isValid
+        ? this.data.subarray(0, indexOf0).toString()
+        : undefined,
     };
   }
 }

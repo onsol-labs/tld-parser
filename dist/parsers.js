@@ -1,18 +1,19 @@
-"use strict";
+'use strict';
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator['throw'](value)); } catch (e) { reject(e); } }
         function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
+Object.defineProperty(exports, '__esModule', { value: true });
 exports.getNameRecordFromDomainTld = exports.getOwnerFromDomainTld = exports.getAllUserDomainsFromTld = void 0;
-const web3_js_1 = require("@solana/web3.js");
-const state_1 = require("./state");
-const utils_1 = require("./utils");
+const web3_js_1 = require('@solana/web3.js');
+
+const state_1 = require('./state');
+const utils_1 = require('./utils');
 /**
  * retrieves all nameaccounts for any user in a particular tld.
  *
