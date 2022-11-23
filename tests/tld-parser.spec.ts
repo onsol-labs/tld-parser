@@ -1,6 +1,6 @@
-import { NameRecordHeader } from './state';
+import { NameRecordHeader } from '../src/.';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { TldParser } from '.';
+import { TldParser } from '../src/.';
 
 const RPC_URL = 'https://api.mainnet-beta.solana.com';
 const connection = new Connection(RPC_URL);
@@ -11,7 +11,7 @@ const parentAccount = new PublicKey("8err4ThuTiZo9LbozHAvMrzXUmyPWj9urnMo38vC6Fd
 const nameAccount = new PublicKey("6iE5btnTaan1eqfnwChLdVAyFERdn5uCVnp5GiXVg1aB")
 const parentAccountOwner = new PublicKey("ANgPRMKQHgH5Snx2K3VHCvHqFmrABcjTZUrqZBzDCtfA")
 
-describe('onsol tests', () => {
+describe('tldParser tests', () => {
     it('should perform retrieval of all user domains', async () => {
         const parser = new TldParser(connection);
         const allDomainsReceived = await parser.getAllUserDomains(owner);

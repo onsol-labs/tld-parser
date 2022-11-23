@@ -37,3 +37,4 @@ export declare function getOriginNameAccountKey(originTld?: string): Promise<Pub
  * @param parentAccount nameAccount's parentName
  */
 export declare function findOwnedNameAccountsForUser(connection: Connection, userAccount: PublicKey, parentAccount: PublicKey | undefined): Promise<PublicKey[]>;
+//# sourceMappingURL=utils.d.ts.map

@@ -47,3 +47,4 @@ export declare class NameRecordHeader {
         data: string;
     };
 }
+//# sourceMappingURL=state.d.ts.map

@@ -1,18 +1,29 @@
 {
-    "compilerOptions": {
-      "lib": ["es2015"],
-      "module": "commonjs",
-      "target": "es6",
-      "esModuleInterop": true,
-      "resolveJsonModule": true,
-      "declaration": true,
-      "outDir": "./dist"
-    },
-    "exclude": [
-        "tests",
-        "dist",
-        "node_modules",
-        "script"
-    ]
-  }
-  
+  "compilerOptions": {
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "module": "commonjs",
+    "target": "es6",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "baseUrl": "./src",
+    // sources
+    "sourceMap": true,
+    "declarationMap": true,
+    "inlineSources": true,
+  },
+  "rootDir": "./src",
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "tests",
+    "dist",
+    "node_modules",
+    "script",
+    "jest.config.ts"
+  ]
+}
