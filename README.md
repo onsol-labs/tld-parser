@@ -14,12 +14,12 @@ the example below is a replica of the tests in `tests` folder
 ```js
 // constants
 const RPC_URL = 'https://api.mainnet-beta.solana.com';
-const connection = new Connection(RPC_URL);
 const owner = new PublicKey("owner pubkey");
 const tld = 'poor';
 const domanTld = 'miester.poor';
 
 // initialize
+const connection = new Connection(RPC_URL);
 const parser = new TldParser(connection);
 
 // list of name record header publickeys owned by user
