@@ -12,25 +12,25 @@ the devnet values are in constants.ts file
 the example below is a replica of the tests in `tests` folder
 
 ```js
-// initialize
+// constants
 const RPC_URL = 'https://api.mainnet-beta.solana.com';
 const connection = new Connection(RPC_URL);
-
-// any owner
 const owner = new PublicKey("owner pubkey");
+const tld = 'poor';
+const domanTld = 'miester.poor';
+
+// initialize
 const parser = new TldParser(connection);
 
 // list of name record header publickeys owned by user
 const allDomains = await parser.getAllUserDomains(owner); 
 // ["6iE5btnTaan1eqfnwChLdVAyFERdn5uCVnp5GiXVg1aB"]
 
-const tld = 'poor';
 // list of name record header publickeys owned by user in a tld
 const ownedDomains = await parser.getAllUserDomainsFromTld(owner, tld);
 // ["6iE5btnTaan1eqfnwChLdVAyFERdn5uCVnp5GiXVg1aB"]
 
 // retrieve owner of a particular domain Tld
-const domanTld = 'miester.poor';
 const owner = await parser.getOwnerFromDomainTld(domanTld);
 // owner pubkey
 
