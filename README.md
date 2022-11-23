@@ -42,7 +42,7 @@ const nameRecordRecieved = await parser.getNameRecordFromDomainTld(domanTld);
 ### get the tld from a parentAccount
 
 ```js
-const tld = await parser.getTldFromParentAccount(parentAccount);
+const tld = await parser.getTldFromParentAccount(nameRecordRecieved.parentName);
 // .poor
 ```
 ### get the domain from a parentAccountOwner (TldHouse Account)
