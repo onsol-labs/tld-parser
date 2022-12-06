@@ -97,9 +97,11 @@ export class TldParser {
             }
             const parentNameAccount = yield NameRecordHeader.fromAccountAddress(this.connection, parentAccount);
             const tldHouseData = yield this.connection.getAccountInfo(parentNameAccount === null || parentNameAccount === void 0 ? void 0 : parentNameAccount.owner);
-            const tldStart = 8 + 32 + 32 + 32 + 32;
-            const tldBuffer = tldHouseData === null || tldHouseData === void 0 ? void 0 : tldHouseData.data.subarray(tldStart, tldHouseData.data.length);
+            const tldStart = 8 + 32 + 32 + 32 + 32 + 4;
+            const tldEnd = 8 + 32 + 32 + 32 + 32 + 4 + 10;
+            const tldBuffer = tldHouseData === null || tldHouseData === void 0 ? void 0 : tldHouseData.data.subarray(tldStart, tldEnd);
             const tld = tldBuffer.toString();
+            console.log(tld);
             return tld;
         });
     }

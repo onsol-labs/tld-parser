@@ -145,10 +145,12 @@ export class TldParser {
     const tldHouseData = await this.connection.getAccountInfo(
       parentNameAccount?.owner!,
     );
-    const tldStart = 8 + 32 + 32 + 32 + 32;
+    const tldStart = 8 + 32 + 32 + 32 + 32 + 4;
+    const tldEnd = 8 + 32 + 32 + 32 + 32 + 4 + 10;
     const tldBuffer = tldHouseData?.data
-      .subarray(tldStart, tldHouseData.data.length)
+      .subarray(tldStart, tldEnd)
     const tld = tldBuffer.toString();
+    console.log(tld)
     return tld;
   }
   /**
