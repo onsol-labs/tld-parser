@@ -150,7 +150,6 @@ export class TldParser {
     const tldBuffer = tldHouseData?.data
       .subarray(tldStart, tldEnd)
     const tld = tldBuffer.toString();
-    console.log(tld)
     return tld;
   }
   /**
