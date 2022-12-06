@@ -104,7 +104,6 @@ class TldParser {
             const tldEnd = 8 + 32 + 32 + 32 + 32 + 4 + 10;
             const tldBuffer = tldHouseData === null || tldHouseData === void 0 ? void 0 : tldHouseData.data.subarray(tldStart, tldEnd);
             const tld = tldBuffer.toString();
-            console.log(tld);
             return tld;
         });
     }
