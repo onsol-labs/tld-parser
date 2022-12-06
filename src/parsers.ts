@@ -148,7 +148,7 @@ export class TldParser {
     const tldStart = 8 + 32 + 32 + 32 + 32;
     const tldBuffer = tldHouseData?.data
       .subarray(tldStart, tldHouseData.data.length)
-    const tld = new BinaryReader(tldBuffer).readString();
+    const tld = tldBuffer.toString();
     return tld;
   }
   /**

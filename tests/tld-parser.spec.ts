@@ -2,7 +2,7 @@ import { NameRecordHeader } from '../src/.';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { TldParser } from '../src/.';
 
-const RPC_URL = 'https://api.mainnet-beta.solana.com';
+const RPC_URL = 'https://newest-intensive-choice.solana-mainnet.discover.quiknode.pro/b14717fce4a4f1e59e7287e5ac9bdf40fdada346/';
 const connection = new Connection(RPC_URL);
 const owner = new PublicKey(
     '2EGGxj2qbNAJNgLCPKca8sxZYetyTjnoRspTPjzN2D67',
@@ -15,7 +15,7 @@ describe('tldParser tests', () => {
     it('should perform retrieval of all user domains', async () => {
         const parser = new TldParser(connection);
         const allDomainsReceived = await parser.getAllUserDomains(owner);
-        expect(allDomainsReceived).toHaveLength(1)
+        expect(allDomainsReceived).toHaveLength(2)
     });
 
     it('should perform retrieval of all user domains for poor tld', async () => {
