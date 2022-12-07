@@ -1,6 +1,6 @@
-import { NameRecordHeader } from '../src/.';
+import { Record } from './../src/types/records';
+import { NameRecordHeader, TldParser, getDomainKey } from '../src/.';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { TldParser } from '../src/.';
 
 const RPC_URL = 'https://newest-intensive-choice.solana-mainnet.discover.quiknode.pro/b14717fce4a4f1e59e7287e5ac9bdf40fdada346/';
 const connection = new Connection(RPC_URL);
@@ -60,5 +60,19 @@ describe('tldParser tests', () => {
         const parser = new TldParser(connection);
         const domain = await parser.reverseLookupNameAccount(nameAccount, parentAccountOwner);
         expect(domain).toStrictEqual(expect.stringContaining("miester"))
+    });
+
+
+    it('should perform fetching of dns record of domain', async () => {
+        let domain = 'miester.poor'
+        let multiRecordPubkeys = [
+            (await getDomainKey(Record.Url + "." + domain, true)).pubkey,
+            (await getDomainKey(Record.IPFS + "." + domain, true)).pubkey,
+            (await getDomainKey(Record.ARWV + "." + domain, true)).pubkey,
+            (await getDomainKey(Record.SHDW + "." + domain, true)).pubkey,
+        ]
+        const nameRecords = await NameRecordHeader.fromMultipileAccountAddresses(connection, multiRecordPubkeys)
+        console.log(nameRecords[1].data?.toString())
+        expect(nameRecords).toHaveLength(4)
     });
 });

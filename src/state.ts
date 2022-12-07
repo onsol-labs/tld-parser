@@ -1,5 +1,4 @@
-import {Connection, PublicKey} from '@solana/web3.js';
-import {BN} from 'bn.js';
+import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
 import {BinaryReader, deserializeUnchecked, Schema} from 'borsh';
 
 /**
@@ -87,6 +86,52 @@ export class NameRecordHeader {
 
     res.data = nameAccount.data?.subarray(this.byteSize);
 
+    return res;
+  }
+
+  /**
+   * Retrieves the account infos from the multiple name accounts
+   * the {@link NameRecordHeader} from its data.
+   */
+  public static async fromMultipileAccountAddresses(
+    connection: Connection,
+    nameAccountKey: PublicKey[],
+  ): Promise<NameRecordHeader[] | []> {
+    let nameRecordAccountInfos = await connection.getMultipleAccountsInfo(
+      nameAccountKey,
+    );
+
+    let nameRecords: NameRecordHeader[] = [];
+
+    nameRecordAccountInfos.forEach(value => {
+      if (!value) {
+        nameRecords.push(undefined);
+        return;
+      }
+      let nameRecordData = this.fromAccountInfo(value);
+      if (!nameRecordData) {
+        nameRecords.push(undefined);
+        return;
+      }
+      nameRecords.push(nameRecordData);
+    });
+
+    return nameRecords;
+  }
+
+  /**
+   * Retrieves the account info from the provided data and deserializes
+   * the {@link NameRecordHeader} from its data.
+   */
+  public static fromAccountInfo(
+    nameAccountAccountInfo: AccountInfo<Buffer>,
+  ): NameRecordHeader {
+    const res: NameRecordHeader = deserializeUnchecked(
+      this.schema,
+      NameRecordHeader,
+      nameAccountAccountInfo.data,
+    );
+    res.data = nameAccountAccountInfo.data?.subarray(this.byteSize);
     return res;
   }
 
