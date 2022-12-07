@@ -1,6 +1,9 @@
 # TLD Parser 
 
-library to parse tld house domains via alternative name service (ANS) on the Solana Blockchain. Please tread carefully. 
+library to parse tld house domains via alternative name service (ANS) on the Solana Blockchain. 
+
+- TLD Parser is in active development. 
+- So all APIs are subject to change.
 
 ## Examples
 current functions and how to use them. 
