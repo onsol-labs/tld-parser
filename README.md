@@ -16,7 +16,7 @@ the example below is a replica of the tests in `tests` folder
 
 ```js
 // constants
-const RPC_URL = 'https://api.mainnet-beta.solana.com';
+const RPC_URL = '';
 const owner = new PublicKey("owner pubkey");
 const tld = 'poor';
 const domanTld = 'miester.poor';
