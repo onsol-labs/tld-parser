@@ -1,5 +1,5 @@
-import {PublicKey, Connection} from '@solana/web3.js';
-import {NameRecordHeader} from './state';
+import { PublicKey, Connection } from '@solana/web3.js';
+import { NameRecordHeader } from './state';
 import {
   findOwnedNameAccountsForUser,
   getHashedName,
@@ -9,7 +9,7 @@ import {
 } from './utils';
 
 export class TldParser {
-  constructor(private readonly connection: Connection) {}
+  constructor(private readonly connection: Connection) { }
 
   /**
    * retrieves all nameAccounts for any user.
@@ -145,7 +145,7 @@ export class TldParser {
     );
     const tldStart = 8 + 32 + 32 + 32 + 32 + 4;
     const tldEnd = 8 + 32 + 32 + 32 + 32 + 4 + 10;
-    const tldBuffer = tldHouseData?.data.subarray(tldStart, tldEnd);
+    const tldBuffer = tldHouseData?.data?.subarray(tldStart, tldEnd);
     const tld = tldBuffer.toString();
     return tld;
   }
@@ -177,7 +177,7 @@ export class TldParser {
       this.connection,
       reverseLookupAccount,
     );
-    const domain = reverseLookUpResult.data.toString();
+    const domain = reverseLookUpResult?.data?.toString();
     return domain;
   }
 }

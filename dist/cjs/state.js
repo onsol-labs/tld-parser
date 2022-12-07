@@ -58,7 +58,7 @@ class NameRecordHeader {
         return __awaiter(this, void 0, void 0, function* () {
             let nameRecordAccountInfos = yield connection.getMultipleAccountsInfo(nameAccountKey);
             let nameRecords = [];
-            nameRecordAccountInfos.forEach((value) => {
+            nameRecordAccountInfos.forEach(value => {
                 if (!value) {
                     nameRecords.push(undefined);
                     return;
@@ -68,7 +68,6 @@ class NameRecordHeader {
                     nameRecords.push(undefined);
                     return;
                 }
-                ;
                 nameRecords.push(nameRecordData);
             });
             return nameRecords;

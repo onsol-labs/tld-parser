@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey } from '@solana/web3.js';
 /**
  * This function can be used to compute the public key of a domain or subdomain and multi-level subdomain.
  * @param domainTld The domain to compute the public key for (e.g `vlad.poor`, `ipfs.miester.poor`, 'ipfs.super.miester.poor')

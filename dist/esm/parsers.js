@@ -91,6 +91,7 @@ export class TldParser {
      * @param parentAccount parent publickey or string
      */
     getTldFromParentAccount(parentAccount) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (typeof parentAccount == 'string') {
                 parentAccount = new PublicKey(parentAccount);
@@ -99,7 +100,7 @@ export class TldParser {
             const tldHouseData = yield this.connection.getAccountInfo(parentNameAccount === null || parentNameAccount === void 0 ? void 0 : parentNameAccount.owner);
             const tldStart = 8 + 32 + 32 + 32 + 32 + 4;
             const tldEnd = 8 + 32 + 32 + 32 + 32 + 4 + 10;
-            const tldBuffer = tldHouseData === null || tldHouseData === void 0 ? void 0 : tldHouseData.data.subarray(tldStart, tldEnd);
+            const tldBuffer = (_a = tldHouseData === null || tldHouseData === void 0 ? void 0 : tldHouseData.data) === null || _a === void 0 ? void 0 : _a.subarray(tldStart, tldEnd);
             const tld = tldBuffer.toString();
             return tld;
         });
@@ -111,6 +112,7 @@ export class TldParser {
      * @param parentAccountOwner parent Owner or string (TldHouse)
      */
     reverseLookupNameAccount(nameAccount, parentAccountOwner) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (typeof nameAccount == 'string') {
                 nameAccount = new PublicKey(nameAccount);
@@ -121,7 +123,7 @@ export class TldParser {
             const reverseLookupHashedName = yield getHashedName(nameAccount.toString());
             const [reverseLookupAccount] = yield getNameAccountKeyWithBump(reverseLookupHashedName, parentAccountOwner, undefined);
             const reverseLookUpResult = yield NameRecordHeader.fromAccountAddress(this.connection, reverseLookupAccount);
-            const domain = reverseLookUpResult.data.toString();
+            const domain = (_a = reverseLookUpResult === null || reverseLookUpResult === void 0 ? void 0 : reverseLookUpResult.data) === null || _a === void 0 ? void 0 : _a.toString();
             return domain;
         });
     }

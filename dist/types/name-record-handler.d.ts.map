@@ -1,1 +1,1 @@
-{"version":3,"file":"name-record-handler.d.ts","sourceRoot":"","sources":["../../src/name-record-handler.ts"],"names":[],"mappings":";AAAA,OAAO,EAAE,SAAS,EAAE,MAAM,iBAAiB,CAAC;AAI5C;;;;GAIG;AACH,eAAO,MAAM,YAAY,cAAqB,MAAM;;;;;;;;;;;EA4CnD,CAAC"}
+{"version":3,"file":"name-record-handler.d.ts","sourceRoot":"","sources":["../../src/name-record-handler.ts"],"names":[],"mappings":";AAAA,OAAO,EAAC,SAAS,EAAC,MAAM,iBAAiB,CAAC;AAO1C;;;;GAIG;AACH,eAAO,MAAM,YAAY,cAAqB,MAAM;;;;;;;;;;;EA+CnD,CAAC"}
