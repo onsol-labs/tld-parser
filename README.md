@@ -1,6 +1,6 @@
 # TLD Parser 
 
-library to parse tld house domains via alternative name service (ANS) on the Solana Blockchain. 
+library to parse tld house domains via alternative name service (ANS) on the Solana Blockchain. Please tread carefully. 
 
 ## Examples
 current functions and how to use them. 
@@ -47,6 +47,12 @@ const tldReceived = await parser.getTldFromParentAccount(nameRecord.parentName);
 const parentNameRecord = await NameRecordHeader.fromAccountAddress(connection, nameRecord?.parentName);
 const domain = await parser.reverseLookupNameAccount(nameAccount, parentNameRecord?.owner);
 // miester
+
+// retrieve dns from domains. works with different records
+const recordPubkey = (await getDomainKey(Record.IPFS + "." + domanTld, true)).pubkey
+const nameRecord = await NameRecordHeader.fromAccountAddress(recordPubkey);
+// ipfs://...
+
 ```
 
 ## States

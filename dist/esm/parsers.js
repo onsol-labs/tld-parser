@@ -121,7 +121,7 @@ export class TldParser {
             if (typeof parentAccountOwner == 'string') {
                 parentAccountOwner = new PublicKey(parentAccountOwner);
             }
-            const reverseLookupHashedName = yield getHashedName(nameAccount.toString());
+            const reverseLookupHashedName = getHashedName(nameAccount.toString());
             const [reverseLookupAccount] = yield getNameAccountKeyWithBump(reverseLookupHashedName, parentAccountOwner, undefined);
             const reverseLookUpResult = yield NameRecordHeader.fromAccountAddress(this.connection, reverseLookupAccount);
             const domain = (_a = reverseLookUpResult === null || reverseLookUpResult === void 0 ? void 0 : reverseLookUpResult.data) === null || _a === void 0 ? void 0 : _a.toString();

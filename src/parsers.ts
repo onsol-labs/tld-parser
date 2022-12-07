@@ -167,7 +167,7 @@ export class TldParser {
       parentAccountOwner = new PublicKey(parentAccountOwner);
     }
 
-    const reverseLookupHashedName = await getHashedName(nameAccount.toString());
+    const reverseLookupHashedName = getHashedName(nameAccount.toString());
     const [reverseLookupAccount] = await getNameAccountKeyWithBump(
       reverseLookupHashedName,
       parentAccountOwner,

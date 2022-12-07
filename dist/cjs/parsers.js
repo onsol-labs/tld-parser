@@ -124,7 +124,7 @@ class TldParser {
             if (typeof parentAccountOwner == 'string') {
                 parentAccountOwner = new web3_js_1.PublicKey(parentAccountOwner);
             }
-            const reverseLookupHashedName = yield (0, utils_1.getHashedName)(nameAccount.toString());
+            const reverseLookupHashedName = (0, utils_1.getHashedName)(nameAccount.toString());
             const [reverseLookupAccount] = yield (0, utils_1.getNameAccountKeyWithBump)(reverseLookupHashedName, parentAccountOwner, undefined);
             const reverseLookUpResult = yield state_1.NameRecordHeader.fromAccountAddress(this.connection, reverseLookupAccount);
             const domain = (_a = reverseLookUpResult === null || reverseLookUpResult === void 0 ? void 0 : reverseLookUpResult.data) === null || _a === void 0 ? void 0 : _a.toString();
