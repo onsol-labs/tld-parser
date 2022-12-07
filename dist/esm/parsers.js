@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { PublicKey } from '@solana/web3.js';
+import { BN } from 'bn.js';
 import { NameRecordHeader } from './state';
 import { findOwnedNameAccountsForUser, getHashedName, getNameAccountKeyWithBump, getNameOwner, getOriginNameAccountKey, } from './utils';
 export class TldParser {
@@ -98,10 +99,10 @@ export class TldParser {
             }
             const parentNameAccount = yield NameRecordHeader.fromAccountAddress(this.connection, parentAccount);
             const tldHouseData = yield this.connection.getAccountInfo(parentNameAccount === null || parentNameAccount === void 0 ? void 0 : parentNameAccount.owner);
-            const tldStart = 8 + 32 + 32 + 32 + 32 + 4;
-            const tldEnd = 8 + 32 + 32 + 32 + 32 + 4 + 10;
-            const tldBuffer = (_a = tldHouseData === null || tldHouseData === void 0 ? void 0 : tldHouseData.data) === null || _a === void 0 ? void 0 : _a.subarray(tldStart, tldEnd);
-            const tld = tldBuffer.toString();
+            const tldStart = 8 + 32 + 32 + 32 + 32;
+            const tldBuffer = (_a = tldHouseData === null || tldHouseData === void 0 ? void 0 : tldHouseData.data) === null || _a === void 0 ? void 0 : _a.subarray(tldStart);
+            const nameLength = new BN(tldBuffer === null || tldBuffer === void 0 ? void 0 : tldBuffer.subarray(0, 4), "le").toNumber();
+            const tld = tldBuffer.subarray(4, 4 + nameLength).toString();
             return tld;
         });
     }

@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TldParser = void 0;
 const web3_js_1 = require("@solana/web3.js");
+const bn_js_1 = require("bn.js");
 const state_1 = require("./state");
 const utils_1 = require("./utils");
 class TldParser {
@@ -101,10 +102,10 @@ class TldParser {
             }
             const parentNameAccount = yield state_1.NameRecordHeader.fromAccountAddress(this.connection, parentAccount);
             const tldHouseData = yield this.connection.getAccountInfo(parentNameAccount === null || parentNameAccount === void 0 ? void 0 : parentNameAccount.owner);
-            const tldStart = 8 + 32 + 32 + 32 + 32 + 4;
-            const tldEnd = 8 + 32 + 32 + 32 + 32 + 4 + 10;
-            const tldBuffer = (_a = tldHouseData === null || tldHouseData === void 0 ? void 0 : tldHouseData.data) === null || _a === void 0 ? void 0 : _a.subarray(tldStart, tldEnd);
-            const tld = tldBuffer.toString();
+            const tldStart = 8 + 32 + 32 + 32 + 32;
+            const tldBuffer = (_a = tldHouseData === null || tldHouseData === void 0 ? void 0 : tldHouseData.data) === null || _a === void 0 ? void 0 : _a.subarray(tldStart);
+            const nameLength = new bn_js_1.BN(tldBuffer === null || tldBuffer === void 0 ? void 0 : tldBuffer.subarray(0, 4), "le").toNumber();
+            const tld = tldBuffer.subarray(4, 4 + nameLength).toString();
             return tld;
         });
     }

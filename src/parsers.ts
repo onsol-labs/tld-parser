@@ -1,4 +1,5 @@
 import { PublicKey, Connection } from '@solana/web3.js';
+import { BN } from 'bn.js';
 import { NameRecordHeader } from './state';
 import {
   findOwnedNameAccountsForUser,
@@ -143,10 +144,10 @@ export class TldParser {
     const tldHouseData = await this.connection.getAccountInfo(
       parentNameAccount?.owner!,
     );
-    const tldStart = 8 + 32 + 32 + 32 + 32 + 4;
-    const tldEnd = 8 + 32 + 32 + 32 + 32 + 4 + 10;
-    const tldBuffer = tldHouseData?.data?.subarray(tldStart, tldEnd);
-    const tld = tldBuffer.toString();
+    const tldStart = 8 + 32 + 32 + 32 + 32;
+    const tldBuffer = tldHouseData?.data?.subarray(tldStart);
+    const nameLength = new BN(tldBuffer?.subarray(0, 4), "le").toNumber();
+    const tld = tldBuffer.subarray(4, 4 + nameLength).toString();
     return tld;
   }
   /**

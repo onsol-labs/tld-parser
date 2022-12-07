@@ -72,7 +72,6 @@ describe('tldParser tests', () => {
             (await getDomainKey(Record.SHDW + "." + domain, true)).pubkey,
         ]
         const nameRecords = await NameRecordHeader.fromMultipileAccountAddresses(connection, multiRecordPubkeys)
-        console.log(nameRecords[1].data?.toString())
         expect(nameRecords).toHaveLength(4)
     });
 });
