@@ -1,7 +1,9 @@
+import { MainDomain } from './state/main-domain';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { BN } from 'bn.js';
-import { NameRecordHeader } from './state';
+import { NameRecordHeader } from './state/name-record-header';
 import {
+  findMainDomain,
   findOwnedNameAccountsForUser,
   getHashedName,
   getNameAccountKeyWithBump,
@@ -180,5 +182,21 @@ export class TldParser {
     );
     const domain = reverseLookUpResult?.data?.toString();
     return domain;
+  }
+  /**
+   * retrieves main domain name account and its domain tld from user address.
+   *
+   * @param userAddress user publickey or string
+   */
+  async getMainDomain(
+    userAddress: PublicKey | string,
+  ): Promise<MainDomain> {
+    if (typeof userAddress == 'string') {
+      userAddress = new PublicKey(userAddress);
+    }
+
+    const [mainDomainAddress] = findMainDomain(userAddress)
+    const mainDomain = await MainDomain.fromAccountAddress(this.connection, mainDomainAddress);
+    return mainDomain;
   }
 }

@@ -1,3 +1,4 @@
+import { MainDomain, MainDomainArgs } from './../src/state/main-domain';
 import { Record } from './../src/types/records';
 import { NameRecordHeader, TldParser, getDomainKey } from '../src/.';
 import { Connection, PublicKey } from '@solana/web3.js';
@@ -62,7 +63,6 @@ describe('tldParser tests', () => {
         expect(domain).toStrictEqual(expect.stringContaining("miester"))
     });
 
-
     it('should perform fetching of dns record of domain', async () => {
         let domain = 'miester.poor'
         let multiRecordPubkeys = [
@@ -73,5 +73,17 @@ describe('tldParser tests', () => {
         ]
         const nameRecords = await NameRecordHeader.fromMultipileAccountAddresses(connection, multiRecordPubkeys)
         expect(nameRecords).toHaveLength(4)
+    });
+
+    it('should perform fetching of main domain', async () => {
+        const parser = new TldParser(connection);
+        const mainDomain = await parser.getMainDomain(owner);
+        const expectedMainDomainArgs: MainDomainArgs = {
+            domain: "miester",
+            tld: ".poor",
+            nameAccount: nameAccount
+        }
+        const expectedMainDomain = MainDomain.fromArgs(expectedMainDomainArgs);
+        expect(mainDomain).toMatchObject(expectedMainDomain)
     });
 });

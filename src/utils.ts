@@ -1,8 +1,8 @@
-import {Connection, PublicKey} from '@solana/web3.js';
-import {createHash} from 'crypto';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { createHash } from 'crypto';
 
-import {ANS_PROGRAM_ID, ORIGIN_TLD} from './constants';
-import {NameRecordHeader} from './state';
+import { ANS_PROGRAM_ID, MAIN_DOMAIN_PREFIX, ORIGIN_TLD, TLD_HOUSE_PROGRAM_ID } from './constants';
+import { NameRecordHeader } from './state/name-record-header';
 
 /**
  * retrieves raw name account
@@ -11,18 +11,18 @@ import {NameRecordHeader} from './state';
  * @param nameClass defaults to pubkey::default()
  * @param parentName defaults to pubkey::default()
  */
-export async function getNameAccountKeyWithBump(
+export function getNameAccountKeyWithBump(
   hashedName: Buffer,
   nameClass?: PublicKey,
   parentName?: PublicKey,
-): Promise<[PublicKey, number]> {
+): [PublicKey, number] {
   const seeds = [
     hashedName,
     nameClass ? nameClass.toBuffer() : Buffer.alloc(32),
     parentName ? parentName.toBuffer() : Buffer.alloc(32),
   ];
 
-  return await PublicKey.findProgramAddress(seeds, ANS_PROGRAM_ID);
+  return PublicKey.findProgramAddressSync(seeds, ANS_PROGRAM_ID);
 }
 
 /**
@@ -105,3 +105,11 @@ export async function findOwnedNameAccountsForUser(
   });
   return accounts.map((a: any) => a.pubkey);
 }
+
+export function findMainDomain(user: PublicKey) {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(MAIN_DOMAIN_PREFIX), user.toBuffer()],
+    TLD_HOUSE_PROGRAM_ID
+  );
+}
+
