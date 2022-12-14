@@ -1,6 +1,6 @@
-import { MainDomain, MainDomainArgs } from './../src/state/main-domain';
-import { Record } from './../src/types/records';
-import { NameRecordHeader, TldParser, getDomainKey } from '../src/.';
+import { MainDomain, MainDomainArgs } from '../src/state/main-domain';
+import { Record } from '../src/types/records';
+import { NameRecordHeader, TldParser, getDomainKey } from '../src';
 import { Connection, PublicKey } from '@solana/web3.js';
 
 const RPC_URL = 'https://newest-intensive-choice.solana-mainnet.discover.quiknode.pro/b14717fce4a4f1e59e7287e5ac9bdf40fdada346/';

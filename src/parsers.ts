@@ -47,7 +47,7 @@ export class TldParser {
 
     const nameOriginTldKey = await getOriginNameAccountKey();
     const parentHashedName = getHashedName(tldName);
-    const [parentAccountKey] = await getNameAccountKeyWithBump(
+    const [parentAccountKey] = getNameAccountKeyWithBump(
       parentHashedName,
       undefined,
       nameOriginTldKey,
@@ -77,14 +77,14 @@ export class TldParser {
 
     const nameOriginTldKey = await getOriginNameAccountKey();
     const parentHashedName = getHashedName(tldName);
-    const [parentAccountKey] = await getNameAccountKeyWithBump(
+    const [parentAccountKey] = getNameAccountKeyWithBump(
       parentHashedName,
       undefined,
       nameOriginTldKey,
     );
 
     const domainHashedName = getHashedName(domain);
-    const [domainAccountKey] = await getNameAccountKeyWithBump(
+    const [domainAccountKey] = getNameAccountKeyWithBump(
       domainHashedName,
       undefined,
       parentAccountKey,
@@ -108,14 +108,14 @@ export class TldParser {
 
     const nameOriginTldKey = await getOriginNameAccountKey();
     const parentHashedName = getHashedName(tldName);
-    const [parentAccountKey] = await getNameAccountKeyWithBump(
+    const [parentAccountKey] = getNameAccountKeyWithBump(
       parentHashedName,
       undefined,
       nameOriginTldKey,
     );
 
     const domainHashedName = getHashedName(domain);
-    const [domainAccountKey] = await getNameAccountKeyWithBump(
+    const [domainAccountKey] = getNameAccountKeyWithBump(
       domainHashedName,
       undefined,
       parentAccountKey,
@@ -146,7 +146,7 @@ export class TldParser {
     const tldHouseData = await this.connection.getAccountInfo(
       parentNameAccount?.owner!,
     );
-    const tldStart = 8 + 32 + 32 + 32 + 32;
+    const tldStart = 8 + 32 + 32 + 32;
     const tldBuffer = tldHouseData?.data?.subarray(tldStart);
     const nameLength = new BN(tldBuffer?.subarray(0, 4), "le").toNumber();
     const tld = tldBuffer.subarray(4, 4 + nameLength).toString();
@@ -170,7 +170,7 @@ export class TldParser {
     }
 
     const reverseLookupHashedName = getHashedName(nameAccount.toString());
-    const [reverseLookupAccount] = await getNameAccountKeyWithBump(
+    const [reverseLookupAccount] = getNameAccountKeyWithBump(
       reverseLookupHashedName,
       parentAccountOwner,
       undefined,
