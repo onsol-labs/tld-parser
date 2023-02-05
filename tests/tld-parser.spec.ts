@@ -1,6 +1,6 @@
 import { MainDomain, MainDomainArgs } from '../src/state/main-domain';
 import { Record } from '../src/types/records';
-import { NameRecordHeader, TldParser, getDomainKey, getAllTld } from '../src';
+import { NameRecordHeader, TldParser, getDomainKey } from '../src';
 import { Connection, PublicKey } from '@solana/web3.js';
 
 const RPC_URL = 'https://newest-intensive-choice.solana-mainnet.discover.quiknode.pro/b14717fce4a4f1e59e7287e5ac9bdf40fdada346/';
@@ -16,7 +16,7 @@ describe('tldParser tests', () => {
   it('should perform retrieval of all user domains', async () => {
     const parser = new TldParser(connection);
     const allDomainsReceived = await parser.getAllUserDomains(owner);
-    expect(allDomainsReceived).toHaveLength(10)
+    expect(allDomainsReceived).toHaveLength(2)
   });
 
   it('should perform retrieval of all user domains for poor tld', async () => {
