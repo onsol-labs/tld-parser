@@ -25,3 +25,4 @@ module.flow.js
 
 # TypeScript
 declarations
+tests_local/

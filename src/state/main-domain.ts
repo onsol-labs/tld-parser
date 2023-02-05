@@ -1,6 +1,6 @@
-import * as web3 from '@solana/web3.js'
-import * as beetSolana from '@metaplex-foundation/beet-solana'
-import * as beet from '@metaplex-foundation/beet'
+import * as web3 from '@solana/web3.js';
+import * as beetSolana from '@metaplex-foundation/beet-solana';
+import * as beet from '@metaplex-foundation/beet';
 
 /**
  * Arguments used to create {@link MainDomain}
@@ -8,12 +8,12 @@ import * as beet from '@metaplex-foundation/beet'
  * @category generated
  */
 export type MainDomainArgs = {
-    nameAccount: web3.PublicKey
-    tld: string
-    domain: string
-}
+    nameAccount: web3.PublicKey;
+    tld: string;
+    domain: string;
+};
 
-export const mainDomainDiscriminator = [109, 239, 227, 199, 98, 226, 66, 175]
+export const mainDomainDiscriminator = [109, 239, 227, 199, 98, 226, 66, 175];
 /**
  * Holds the data for the {@link MainDomain} Account and provides de/serialization
  * functionality for that data
@@ -25,14 +25,14 @@ export class MainDomain implements MainDomainArgs {
     private constructor(
         readonly nameAccount: web3.PublicKey,
         readonly tld: string,
-        readonly domain: string
-    ) { }
+        readonly domain: string,
+    ) {}
 
     /**
      * Creates a {@link MainDomain} instance from the provided args.
      */
     static fromArgs(args: MainDomainArgs) {
-        return new MainDomain(args.nameAccount, args.tld, args.domain)
+        return new MainDomain(args.nameAccount, args.tld, args.domain);
     }
 
     /**
@@ -41,9 +41,9 @@ export class MainDomain implements MainDomainArgs {
      */
     static fromAccountInfo(
         accountInfo: web3.AccountInfo<Buffer>,
-        offset = 0
+        offset = 0,
     ): [MainDomain, number] {
-        return MainDomain.deserialize(accountInfo.data, offset)
+        return MainDomain.deserialize(accountInfo.data, offset);
     }
 
     /**
@@ -55,16 +55,16 @@ export class MainDomain implements MainDomainArgs {
     static async fromAccountAddress(
         connection: web3.Connection,
         address: web3.PublicKey,
-        commitmentOrConfig?: web3.Commitment | web3.GetAccountInfoConfig
+        commitmentOrConfig?: web3.Commitment | web3.GetAccountInfoConfig,
     ): Promise<MainDomain> {
         const accountInfo = await connection.getAccountInfo(
             address,
-            commitmentOrConfig
-        )
+            commitmentOrConfig,
+        );
         if (accountInfo == null) {
-            throw new Error(`Unable to find MainDomain account at ${address}`)
+            throw new Error(`Unable to find MainDomain account at ${address}`);
         }
-        return MainDomain.fromAccountInfo(accountInfo, 0)[0]
+        return MainDomain.fromAccountInfo(accountInfo, 0)[0];
     }
 
     /**
@@ -75,10 +75,10 @@ export class MainDomain implements MainDomainArgs {
      */
     static gpaBuilder(
         programId: web3.PublicKey = new web3.PublicKey(
-            'TLDHkysf5pCnKsVA4gXpNvmy7psXLPEu4LAdDJthT9S'
-        )
+            'TLDHkysf5pCnKsVA4gXpNvmy7psXLPEu4LAdDJthT9S',
+        ),
     ) {
-        return beetSolana.GpaBuilder.fromStruct(programId, mainDomainBeet)
+        return beetSolana.GpaBuilder.fromStruct(programId, mainDomainBeet);
     }
 
     /**
@@ -86,7 +86,7 @@ export class MainDomain implements MainDomainArgs {
      * @returns a tuple of the account data and the offset up to which the buffer was read to obtain it.
      */
     static deserialize(buf: Buffer, offset = 0): [MainDomain, number] {
-        return mainDomainBeet.deserialize(buf, offset)
+        return mainDomainBeet.deserialize(buf, offset);
     }
 
     /**
@@ -97,7 +97,7 @@ export class MainDomain implements MainDomainArgs {
         return mainDomainBeet.serialize({
             accountDiscriminator: mainDomainDiscriminator,
             ...this,
-        })
+        });
     }
 
     /**
@@ -108,11 +108,11 @@ export class MainDomain implements MainDomainArgs {
      * depends on them
      */
     static byteSize(args: MainDomainArgs) {
-        const instance = MainDomain.fromArgs(args)
+        const instance = MainDomain.fromArgs(args);
         return mainDomainBeet.toFixedFromValue({
             accountDiscriminator: mainDomainDiscriminator,
             ...instance,
-        }).byteSize
+        }).byteSize;
     }
 
     /**
@@ -126,12 +126,12 @@ export class MainDomain implements MainDomainArgs {
     static async getMinimumBalanceForRentExemption(
         args: MainDomainArgs,
         connection: web3.Connection,
-        commitment?: web3.Commitment
+        commitment?: web3.Commitment,
     ): Promise<number> {
         return connection.getMinimumBalanceForRentExemption(
             MainDomain.byteSize(args),
-            commitment
-        )
+            commitment,
+        );
     }
 
     /**
@@ -143,7 +143,7 @@ export class MainDomain implements MainDomainArgs {
             nameAccount: this.nameAccount.toBase58(),
             tld: this.tld,
             domain: this.domain,
-        }
+        };
     }
 }
 
@@ -154,7 +154,7 @@ export class MainDomain implements MainDomainArgs {
 export const mainDomainBeet = new beet.FixableBeetStruct<
     MainDomain,
     MainDomainArgs & {
-        accountDiscriminator: number[] /* size: 8 */
+        accountDiscriminator: number[] /* size: 8 */;
     }
 >(
     [
@@ -164,5 +164,5 @@ export const mainDomainBeet = new beet.FixableBeetStruct<
         ['domain', beet.utf8String],
     ],
     MainDomain.fromArgs,
-    'MainDomain'
-)
+    'MainDomain',
+);
