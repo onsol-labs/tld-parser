@@ -25,6 +25,5 @@
     "dist",
     "node_modules",
     "script",
-    "jest.config.ts"
   ]
 }

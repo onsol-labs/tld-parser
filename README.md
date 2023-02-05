@@ -5,6 +5,15 @@ library to parse tld house domains via alternative name service (ANS) on the Sol
 - TLD Parser is in active development. 
 - So all APIs are subject to change.
 
+## Active Tlds
+
+```
+TLD     => parentAccountKey
+.bonk   => 2j6gC6MMrnw4JJpAKR5FyyUFdxxvdZdG2sg4FrqfyWi5
+.poor   => 8err4ThuTiZo9LbozHAvMrzXUmyPWj9urnMo38vC6FdQ
+.abc    => 3pSeaEVTcKLkXPCpZHDpHUMWAogYFZgKSiVtyvqcgo8a
+```
+
 ## Examples
 current functions and how to use them. 
 
@@ -56,6 +65,19 @@ const recordPubkey = (await getDomainKey(Record.IPFS + "." + domain, true)).pubk
 const nameRecord = await NameRecordHeader.fromAccountAddress(recordPubkey);
 // ipfs://...
 
+const allTlds = await getAllTlds(connection);
+// [{ 
+//    tld: '.bonk',
+//    parentAccount: "2j6gC6MMrnw4JJpAKR5FyyUFdxxvdZdG2sg4FrqfyWi5",
+//  },
+//  {
+//    tld: '.poor',
+//    parentAccount: "8err4ThuTiZo9LbozHAvMrzXUmyPWj9urnMo38vC6FdQ",
+//  },
+//  {
+//    tld: '.abc',
+//    parentAccount: "3pSeaEVTcKLkXPCpZHDpHUMWAogYFZgKSiVtyvqcgo8a",
+// }]
 ```
 
 ## States

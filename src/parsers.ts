@@ -1,7 +1,7 @@
-import { MainDomain } from './state/main-domain';
-import { PublicKey, Connection } from '@solana/web3.js';
-import { BN } from 'bn.js';
-import { NameRecordHeader } from './state/name-record-header';
+import {MainDomain} from './state/main-domain';
+import {PublicKey, Connection} from '@solana/web3.js';
+import {BN} from 'bn.js';
+import {NameRecordHeader} from './state/name-record-header';
 import {
   findMainDomain,
   findOwnedNameAccountsForUser,
@@ -12,7 +12,7 @@ import {
 } from './utils';
 
 export class TldParser {
-  constructor(private readonly connection: Connection) { }
+  constructor(private readonly connection: Connection) {}
 
   /**
    * retrieves all nameAccounts for any user.
@@ -148,8 +148,11 @@ export class TldParser {
     );
     const tldStart = 8 + 32 + 32 + 32;
     const tldBuffer = tldHouseData?.data?.subarray(tldStart);
-    const nameLength = new BN(tldBuffer?.subarray(0, 4), "le").toNumber();
-    const tld = tldBuffer.subarray(4, 4 + nameLength).toString().replace(/\0.*$/g, '');;
+    const nameLength = new BN(tldBuffer?.subarray(0, 4), 'le').toNumber();
+    const tld = tldBuffer
+      .subarray(4, 4 + nameLength)
+      .toString()
+      .replace(/\0.*$/g, '');
     return tld;
   }
   /**
@@ -188,15 +191,16 @@ export class TldParser {
    *
    * @param userAddress user publickey or string
    */
-  async getMainDomain(
-    userAddress: PublicKey | string,
-  ): Promise<MainDomain> {
+  async getMainDomain(userAddress: PublicKey | string): Promise<MainDomain> {
     if (typeof userAddress == 'string') {
       userAddress = new PublicKey(userAddress);
     }
 
-    const [mainDomainAddress] = findMainDomain(userAddress)
-    const mainDomain = await MainDomain.fromAccountAddress(this.connection, mainDomainAddress);
+    const [mainDomainAddress] = findMainDomain(userAddress);
+    const mainDomain = await MainDomain.fromAccountAddress(
+      this.connection,
+      mainDomainAddress,
+    );
     return mainDomain;
   }
 }
