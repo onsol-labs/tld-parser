@@ -1,5 +1,5 @@
-import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
-import {BinaryReader, deserializeUnchecked, Schema} from 'borsh';
+import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
+import { BinaryReader, deserializeUnchecked, Schema } from 'borsh';
 
 /**
  * Holds the data for the {@link NameRecordHeader} Account and provides de/serialization

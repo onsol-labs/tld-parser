@@ -1,4 +1,5 @@
-import { Connection, PublicKey } from '@solana/web3.js';
+import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
+import { BN } from 'bn.js';
 import { createHash } from 'crypto';
 
 import { ANS_PROGRAM_ID, MAIN_DOMAIN_PREFIX, ORIGIN_TLD, TLD_HOUSE_PROGRAM_ID } from './constants';
@@ -113,3 +114,70 @@ export function findMainDomain(user: PublicKey) {
   );
 }
 
+
+/**
+ * finds list of all tld house accounts live.
+ *
+ * @param connection sol connection
+ */
+export async function getAllTldHouses(
+  connection: Connection,
+): Promise<
+  Array<{
+    pubkey: PublicKey;
+    account: AccountInfo<Buffer>;
+  }>> {
+  const tldHouseDiscriminator = [247, 144, 135, 1, 238, 173, 19, 249];
+  const filters: any = [
+    {
+      memcmp: {
+        offset: 0,
+        bytes: tldHouseDiscriminator,
+      },
+    },
+  ];
+
+  const accounts = await connection.getProgramAccounts(TLD_HOUSE_PROGRAM_ID, {
+    filters: filters,
+  });
+  return accounts;
+}
+
+export function getTldFromTldHouseAccountInfo(tldHouseData: AccountInfo<Buffer>) {
+  const tldStart = 8 + 32 + 32 + 32;
+  const tldBuffer = tldHouseData?.data?.subarray(tldStart);
+  const nameLength = new BN(tldBuffer?.subarray(0, 4), "le").toNumber();
+  return tldBuffer.subarray(4, 4 + nameLength).toString().replace(/\0.*$/g, '');
+}
+
+export function getParentAccountFromTldHouseAccountInfo(tldHouseData: AccountInfo<Buffer>) {
+  const parentAccountStart = 8 + 32 + 32;
+  const parentAccountBuffer = tldHouseData?.data?.subarray(parentAccountStart, parentAccountStart + 32);
+
+  return new PublicKey(parentAccountBuffer);
+}
+
+/**
+ * finds list of all domains in parent account from tld.
+ *
+ * @param connection sol connection
+ * @param parentAccount nameAccount's parentName
+ */
+export async function findAllDomainsForTld(
+  connection: Connection,
+  parentAccount: PublicKey
+): Promise<NameRecordHeader[]> {
+  const filters: any = [
+    {
+      memcmp: {
+        offset: 8,
+        bytes: parentAccount.toBase58(),
+      },
+    },
+  ];
+
+  const accounts = await connection.getProgramAccounts(ANS_PROGRAM_ID, {
+    filters: filters,
+  });
+  return accounts.map((a: any) => a.pubkey);
+}

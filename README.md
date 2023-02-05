@@ -19,26 +19,26 @@ the example below is a replica of the tests in `tests` folder
 const RPC_URL = '';
 const owner = new PublicKey("owner pubkey");
 const tld = 'poor';
-const domanTld = 'miester.poor';
+const domain = 'miester.poor';
 
 // initialize
 const connection = new Connection(RPC_URL);
 const parser = new TldParser(connection);
 
 // list of name record header publickeys owned by user
-const allDomains = await parser.getAllUserDomains(owner); 
+const ownerDomains = await parser.getAllUserDomains(owner); 
 // ["6iE5btnTaan1eqfnwChLdVAyFERdn5uCVnp5GiXVg1aB"]
 
 // list of name record header publickeys owned by user in a tld
-const ownedDomains = await parser.getAllUserDomainsFromTld(owner, tld);
+const ownedTldDomains = await parser.getAllUserDomainsFromTld(owner, tld);
 // ["6iE5btnTaan1eqfnwChLdVAyFERdn5uCVnp5GiXVg1aB"]
 
-// retrieve owner of a particular domain Tld
-const owner = await parser.getOwnerFromDomainTld(domanTld);
+// retrieve owner of a particular domain
+const owner = await parser.getOwnerFromDomainTld(domain);
 // owner pubkey
 
-// retrieve NameRecordHeader of a particular domain Tld
-const nameRecord = await parser.getNameRecordFromDomainTld(domanTld);
+// retrieve NameRecordHeader of a particular domain
+const nameRecord = await parser.getNameRecordFromDomainTld(domain);
 // a NameRecordHeader state
 // if domain is expired, owner and data fields would be undefined
 
@@ -52,7 +52,7 @@ const domain = await parser.reverseLookupNameAccount(nameAccount, parentNameReco
 // miester
 
 // retrieve dns from domains. works with different records
-const recordPubkey = (await getDomainKey(Record.IPFS + "." + domanTld, true)).pubkey
+const recordPubkey = (await getDomainKey(Record.IPFS + "." + domain, true)).pubkey
 const nameRecord = await NameRecordHeader.fromAccountAddress(recordPubkey);
 // ipfs://...
 

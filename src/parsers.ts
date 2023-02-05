@@ -149,7 +149,7 @@ export class TldParser {
     const tldStart = 8 + 32 + 32 + 32;
     const tldBuffer = tldHouseData?.data?.subarray(tldStart);
     const nameLength = new BN(tldBuffer?.subarray(0, 4), "le").toNumber();
-    const tld = tldBuffer.subarray(4, 4 + nameLength).toString();
+    const tld = tldBuffer.subarray(4, 4 + nameLength).toString().replace(/\0.*$/g, '');;
     return tld;
   }
   /**
