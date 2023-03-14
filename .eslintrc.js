@@ -39,7 +39,7 @@ module.exports = {
         quotes: [
             'error',
             'single',
-            {avoidEscape: true, allowTemplateLiterals: true},
+            { avoidEscape: true, allowTemplateLiterals: true },
         ],
         'require-await': ['error'],
         semi: ['error', 'always'],

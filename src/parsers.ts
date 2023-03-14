@@ -1,10 +1,11 @@
-import {MainDomain} from './state/main-domain';
-import {PublicKey, Connection} from '@solana/web3.js';
-import {BN} from 'bn.js';
-import {NameRecordHeader} from './state/name-record-header';
+import { MainDomain } from './state/main-domain';
+import { PublicKey, Connection } from '@solana/web3.js';
+import { BN } from 'bn.js';
+import { NameRecordHeader } from './state/name-record-header';
 import {
     findMainDomain,
     findOwnedNameAccountsForUser,
+    findTldHouse,
     getHashedName,
     getNameAccountKeyWithBump,
     getNameOwner,
@@ -90,7 +91,13 @@ export class TldParser {
             parentAccountKey,
         );
 
-        const nameOwner = await getNameOwner(this.connection, domainAccountKey);
+        const [tldHouse] = findTldHouse(tldName);
+
+        const nameOwner = await getNameOwner(
+            this.connection,
+            domainAccountKey,
+            tldHouse,
+        );
         return nameOwner;
     }
 

@@ -1,14 +1,20 @@
-import {AccountInfo, Connection, PublicKey} from '@solana/web3.js';
-import {BN} from 'bn.js';
-import {createHash} from 'crypto';
+import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
+import { BN } from 'bn.js';
+import { createHash } from 'crypto';
 
 import {
     ANS_PROGRAM_ID,
     MAIN_DOMAIN_PREFIX,
+    NAME_HOUSE_PREFIX,
+    NAME_HOUSE_PROGRAM_ID,
+    NFT_RECORD_PREFIX,
     ORIGIN_TLD,
+    TLD_HOUSE_PREFIX,
     TLD_HOUSE_PROGRAM_ID,
 } from './constants';
-import {NameRecordHeader} from './state/name-record-header';
+import { NameRecordHeader } from './state/name-record-header';
+import { Tag } from './types/tag';
+import { NftRecord } from './state/nft-record';
 
 /**
  * retrieves raw name account
@@ -40,10 +46,16 @@ export function getNameAccountKeyWithBump(
 export async function getNameOwner(
     connection: Connection,
     nameAccountKey: PublicKey,
+    tldHouse?: PublicKey,
 ): Promise<PublicKey | undefined> {
-    return (
+    const owner = (
         await NameRecordHeader.fromAccountAddress(connection, nameAccountKey)
     )?.owner;
+    if (!tldHouse) return owner;
+    const [nameHouse] = findNameHouse(tldHouse);
+    const [nftRecord] = findNftRecord(nameAccountKey, nameHouse);
+    if (owner?.toBase58() !== nftRecord.toBase58()) return owner;
+    return await getMintOwner(connection, nftRecord);
 }
 
 /**
@@ -150,10 +162,10 @@ export async function getAllTld(connection: Connection): Promise<
         parentAccount: PublicKey;
     }[] = [];
 
-    accounts.map(({account}) => {
+    accounts.map(({ account }) => {
         const parentAccount = getParentAccountFromTldHouseAccountInfo(account);
         const tld = getTldFromTldHouseAccountInfo(account);
-        tldsAndParentAccounts.push({tld, parentAccount});
+        tldsAndParentAccounts.push({ tld, parentAccount });
     });
     return tldsAndParentAccounts;
 }
@@ -205,4 +217,57 @@ export async function findAllDomainsForTld(
         filters: filters,
     });
     return accounts.map((a: any) => a.pubkey);
+}
+
+export async function getMintOwner(
+    connection: Connection,
+    nftRecord: PublicKey,
+) {
+    try {
+        const nftRecordData = await NftRecord.fromAccountAddress(
+            connection,
+            nftRecord,
+        );
+        if (nftRecordData.tag !== Tag.ActiveRecord) return;
+        const largestAccounts = await connection.getTokenLargestAccounts(
+            nftRecordData.nftMintAccount,
+        );
+        const largestAccountInfo = await connection.getParsedAccountInfo(
+            largestAccounts.value[0].address,
+        );
+        if (!largestAccountInfo.value.data) return;
+        // @ts-ignore
+        return new PublicKey(largestAccountInfo.value.data.parsed.info.owner);
+    } catch {
+        return undefined;
+    }
+}
+
+export function findNftRecord(
+    nameAccount: PublicKey,
+    nameHouseAccount: PublicKey,
+) {
+    return PublicKey.findProgramAddressSync(
+        [
+            Buffer.from(NFT_RECORD_PREFIX),
+            nameHouseAccount.toBuffer(),
+            nameAccount.toBuffer(),
+        ],
+        NAME_HOUSE_PROGRAM_ID,
+    );
+}
+
+export function findTldHouse(tldString: string) {
+    tldString = tldString.toLowerCase();
+    return PublicKey.findProgramAddressSync(
+        [Buffer.from(TLD_HOUSE_PREFIX), Buffer.from(tldString)],
+        TLD_HOUSE_PROGRAM_ID,
+    );
+}
+
+export function findNameHouse(tldHouse: PublicKey) {
+    return PublicKey.findProgramAddressSync(
+        [Buffer.from(NAME_HOUSE_PREFIX), tldHouse.toBuffer()],
+        NAME_HOUSE_PROGRAM_ID,
+    );
 }
