@@ -1,5 +1,5 @@
 arrowParens: "avoid"
-bracketSpacing: false
+bracketSpacing: true
 semi: true
 singleQuote: true
 tabWidth: 4
