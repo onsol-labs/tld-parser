@@ -47,7 +47,7 @@ export class TldParser {
         const tldName = '.' + tld;
 
         const nameOriginTldKey = await getOriginNameAccountKey();
-        const parentHashedName = getHashedName(tldName);
+        const parentHashedName = await getHashedName(tldName);
         const [parentAccountKey] = getNameAccountKeyWithBump(
             parentHashedName,
             undefined,
@@ -77,14 +77,14 @@ export class TldParser {
         const tldName = '.' + domainTldSplit[1];
 
         const nameOriginTldKey = await getOriginNameAccountKey();
-        const parentHashedName = getHashedName(tldName);
+        const parentHashedName = await getHashedName(tldName);
         const [parentAccountKey] = getNameAccountKeyWithBump(
             parentHashedName,
             undefined,
             nameOriginTldKey,
         );
 
-        const domainHashedName = getHashedName(domain);
+        const domainHashedName = await getHashedName(domain);
         const [domainAccountKey] = getNameAccountKeyWithBump(
             domainHashedName,
             undefined,
@@ -114,14 +114,14 @@ export class TldParser {
         const tldName = '.' + domainTldSplit[1];
 
         const nameOriginTldKey = await getOriginNameAccountKey();
-        const parentHashedName = getHashedName(tldName);
+        const parentHashedName = await getHashedName(tldName);
         const [parentAccountKey] = getNameAccountKeyWithBump(
             parentHashedName,
             undefined,
             nameOriginTldKey,
         );
 
-        const domainHashedName = getHashedName(domain);
+        const domainHashedName = await getHashedName(domain);
         const [domainAccountKey] = getNameAccountKeyWithBump(
             domainHashedName,
             undefined,
@@ -179,7 +179,9 @@ export class TldParser {
             parentAccountOwner = new PublicKey(parentAccountOwner);
         }
 
-        const reverseLookupHashedName = getHashedName(nameAccount.toString());
+        const reverseLookupHashedName = await getHashedName(
+            nameAccount.toString(),
+        );
         const [reverseLookupAccount] = getNameAccountKeyWithBump(
             reverseLookupHashedName,
             parentAccountOwner,
