@@ -1,6 +1,6 @@
 {
   "name": "@onsol/tldparser",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "TLD House (Solana) Javascript API",
   "keywords": [
     "api",
@@ -35,7 +35,7 @@
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "yarn clean && yarn build:cjs; yarn build:esm",
+    "build": "npm run clean && npm run build:cjs; npm run build:esm",
     "build:cjs": "tsc --project tsconfig.cjs.json",
     "build:cjs:watch": "concurrently \"tsc --project tsconfig.cjs.json --watch\"",
     "build:esm": "tsc --project tsconfig.esm.json",
@@ -70,7 +70,7 @@
     "jest-jasmine2": "^29.3.1",
     "prettier": "^2.3.0",
     "ts-jest": "^29.0.3",
-    "typescript": "^4.9.3"
+    "typescript": "^4.9.4"
   },
   "engines": {
     "node": ">=14"
