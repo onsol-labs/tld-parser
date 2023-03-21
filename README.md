@@ -12,6 +12,7 @@ TLD     => parentAccountKey
 .bonk   => 2j6gC6MMrnw4JJpAKR5FyyUFdxxvdZdG2sg4FrqfyWi5
 .poor   => 8err4ThuTiZo9LbozHAvMrzXUmyPWj9urnMo38vC6FdQ
 .abc    => 3pSeaEVTcKLkXPCpZHDpHUMWAogYFZgKSiVtyvqcgo8a
+.eth    => GCzHo7kQPQrrLKbcmF3dAb3uv5EG1TxuSqvoNaAdgwHK
 ```
 
 ## Examples
