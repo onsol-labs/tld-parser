@@ -3,7 +3,7 @@ import {
     getHashedName,
     getNameAccountKeyWithBump,
     getOriginNameAccountKey,
-} from '.';
+} from './utils';
 
 /**
  * This function can be used to compute the public key of a domain or subdomain and multi-level subdomain.
