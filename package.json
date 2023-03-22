@@ -51,10 +51,7 @@
   "dependencies": {
     "@ethersproject/sha2": "^5.7.0",
     "@solana/web3.js": "^1.67.0",
-    "@metaplex-foundation/beet-solana": "^0.4.0",
-    "bn.js": "^5.2.1",
-    "borsh": "^0.7.0",
-    "buffer": "6.0.1"
+    "@metaplex-foundation/beet-solana": "^0.4.0"
   },
   "devDependencies": {
     "@jest/types": "^29.3.1",
@@ -63,6 +60,9 @@
     "@types/jest": "^29.2.3",
     "@typescript-eslint/eslint-plugin": "^5.40.1",
     "@typescript-eslint/parser": "^5.40.1",
+    "bn.js": "^5.2.1",
+    "borsh": "^0.7.0",
+    "buffer": "6.0.1",
     "eslint": "^8.25.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
