@@ -1,6 +1,6 @@
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
 import { BN } from 'bn.js';
-import { createHash } from 'crypto';
+import { sha256 } from '@ethersproject/sha2';
 
 import {
     ANS_PROGRAM_ID,
@@ -63,11 +63,10 @@ export async function getNameOwner(
  *
  * @param name any string or domain name.
  */
-
-export function getHashedName(name: string): Buffer {
+export async function getHashedName(name: string): Promise<Buffer> {
     const input = NameRecordHeader.HASH_PREFIX + name;
-    const buffer = createHash('sha256').update(input, 'utf8').digest();
-    return buffer;
+    const str = sha256(Buffer.from(input, 'utf8')).slice(2);
+    return Buffer.from(str, 'hex');
 }
 
 /**
@@ -80,7 +79,7 @@ export function getHashedName(name: string): Buffer {
 export async function getOriginNameAccountKey(
     originTld: string = ORIGIN_TLD,
 ): Promise<PublicKey> {
-    const hashed_name = getHashedName(originTld);
+    const hashed_name = await getHashedName(originTld);
     const [nameAccountKey] = await getNameAccountKeyWithBump(
         hashed_name,
         undefined,

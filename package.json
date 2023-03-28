@@ -47,21 +47,20 @@
     "test": "jest --config jest.config.ts"
   },
   "dependencies": {
-    "@metaplex-foundation/beet-solana": "^0.4.0",
-    "@solana/buffer-layout": "^4.0.0",
-    "@solana/web3.js": "^1.66.0",
-    "bigint-buffer": "^1.1.5",
-    "bn.js": "^5.2.0",
-    "borsh": "^0.7.0",
-    "buffer": "6.0.1"
+    "@ethersproject/sha2": "^5.7.0",
+    "@metaplex-foundation/beet-solana": "^0.4.0"
   },
   "devDependencies": {
     "@jest/types": "^29.3.1",
     "@types/bn.js": "^5.1.0",
     "@types/bs58": "^4.0.1",
     "@types/jest": "^29.2.3",
+    "@solana/web3.js": "^1.67.0",
     "@typescript-eslint/eslint-plugin": "^5.40.1",
     "@typescript-eslint/parser": "^5.40.1",
+    "bn.js": "^5.2.1",
+    "borsh": "^0.7.0",
+    "buffer": "6.0.1",
     "eslint": "^8.25.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
@@ -72,6 +71,12 @@
     "ts-jest": "^29.0.3",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.4"
+  },
+  "peerDependencies": {
+    "@solana/web3.js": "^1.67.0",
+    "bn.js": "^5.2.1",
+    "borsh": "^0.7.0",
+    "buffer": "6.0.1"
   },
   "engines": {
     "node": ">=14"
