@@ -35,8 +35,6 @@
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "prepublish": "npm run build",
-    "prepare": "npm run build",
     "build": "npm run clean && npm run build:cjs; npm run build:esm",
     "build:cjs": "tsc --project tsconfig.cjs.json",
     "build:cjs:watch": "concurrently \"tsc --project tsconfig.cjs.json --watch\"",
