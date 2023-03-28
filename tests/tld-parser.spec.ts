@@ -16,14 +16,14 @@ describe('tldParser tests', () => {
     it('should perform retrieval of all user domains', async () => {
         const parser = new TldParser(connection);
         const allDomainsReceived = await parser.getAllUserDomains(owner);
-        expect(allDomainsReceived).toHaveLength(4)
+        expect(allDomainsReceived).toHaveLength(5)
     });
 
     it('should perform retrieval of all user domains for poor tld', async () => {
         const parser = new TldParser(connection);
         const tld = 'poor';
         const ownedDomainsReceived = await parser.getAllUserDomainsFromTld(owner, tld);
-        expect(ownedDomainsReceived).toHaveLength(1)
+        expect(ownedDomainsReceived).toHaveLength(2)
     });
 
     it('should perform lookup of owner of the domainTld', async () => {
