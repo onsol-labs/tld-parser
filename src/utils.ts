@@ -202,7 +202,7 @@ export function getParentAccountFromTldHouseAccountInfo(
 export async function findAllDomainsForTld(
     connection: Connection,
     parentAccount: PublicKey,
-): Promise<NameRecordHeader[]> {
+): Promise<PublicKey[]> {
     const filters: any = [
         {
             memcmp: {
