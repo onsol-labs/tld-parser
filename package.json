@@ -45,8 +45,7 @@
     "lint:fix": "npm run pretty:fix && eslint . --fix --ext .js,.ts",
     "pretty": "prettier --check '{,{src,test}/**/}*.{j,t}s'",
     "pretty:fix": "prettier --write '{,{src,test}/**/}*.{j,t}s'",
-    "test": "jest --config jest.config.ts",
-    "prepare": "npm run build"
+    "test": "jest --config jest.config.ts"
   },
   "dependencies": {
     "@ethersproject/sha2": "^5.7.0",
