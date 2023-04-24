@@ -16,7 +16,7 @@ describe('tldParser tests', () => {
     it('should perform retrieval of all user domains', async () => {
         const parser = new TldParser(connection);
         const allDomainsReceived = await parser.getAllUserDomains(owner);
-        expect(allDomainsReceived).toHaveLength(5)
+        expect(allDomainsReceived).toHaveLength(8)
     });
 
     it('should perform retrieval of all user domains for poor tld', async () => {
