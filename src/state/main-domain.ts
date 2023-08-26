@@ -128,7 +128,7 @@ export class MainDomain implements MainDomainArgs {
         connection: web3.Connection,
         commitment?: web3.Commitment,
     ): Promise<number> {
-        return connection.getMinimumBalanceForRentExemption(
+        return await connection.getMinimumBalanceForRentExemption(
             MainDomain.byteSize(args),
             commitment,
         );

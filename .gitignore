@@ -9,6 +9,7 @@ logs
 # Dependencies
 node_modules/
 dist/
+.yarn
 
 # Coverage
 coverage
