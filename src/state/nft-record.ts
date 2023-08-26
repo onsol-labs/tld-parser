@@ -122,7 +122,7 @@ export class NftRecord implements NftRecordArgs {
         connection: web3.Connection,
         commitment?: web3.Commitment,
     ): Promise<number> {
-        return connection.getMinimumBalanceForRentExemption(
+        return await connection.getMinimumBalanceForRentExemption(
             NftRecord.byteSize,
             commitment,
         );

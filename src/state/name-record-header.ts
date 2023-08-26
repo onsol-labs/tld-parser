@@ -11,6 +11,8 @@ export class NameRecordHeader {
         owner: Uint8Array;
         nclass: Uint8Array;
         expiresAt: Uint8Array;
+        createdAt: Uint8Array;
+        nonTransferable: Uint8Array;
     }) {
         this.parentName = new PublicKey(obj.parentName);
         this.nclass = new PublicKey(obj.nclass);
@@ -18,6 +20,11 @@ export class NameRecordHeader {
             new BinaryReader(Buffer.from(obj.expiresAt)).readU64().toNumber() *
                 1000,
         );
+        this.createdAt = new Date(
+            new BinaryReader(Buffer.from(obj.createdAt)).readU64().toNumber() *
+                1000,
+        );
+        this.nonTransferable = obj.nonTransferable[0] !== 0;
         this.isValid =
             new BinaryReader(Buffer.from(obj.expiresAt))
                 .readU64()
@@ -31,6 +38,8 @@ export class NameRecordHeader {
     owner: PublicKey | undefined;
     nclass: PublicKey;
     expiresAt: Date;
+    createdAt: Date;
+    nonTransferable: boolean;
     isValid: boolean;
     data: Buffer | undefined;
 
@@ -51,7 +60,9 @@ export class NameRecordHeader {
                     ['owner', [32]],
                     ['nclass', [32]],
                     ['expiresAt', [8]],
-                    ['padding', [88]],
+                    ['createdAt', [8]],
+                    ['nonTransferable', [1]],
+                    ['padding', [79]],
                 ],
             },
         ],
@@ -62,7 +73,7 @@ export class NameRecordHeader {
      * {@link NameRecordHeader}
      */
     static get byteSize() {
-        return 8 + 32 + 32 + 32 + 8 + 88;
+        return 8 + 32 + 32 + 32 + 8 + 8 + 1 + 79;
     }
 
     /**
@@ -149,6 +160,8 @@ export class NameRecordHeader {
             owner: this.owner?.toBase58(),
             nclass: this.nclass.toBase58(),
             expiresAt: this.expiresAt,
+            createdAt: this.createdAt,
+            nonTransferable: this.nonTransferable,
             isValid: this.isValid,
             data: this.isValid
                 ? this.data.subarray(0, indexOf0).toString()

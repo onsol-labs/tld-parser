@@ -9,8 +9,10 @@ import {
     NAME_HOUSE_PROGRAM_ID,
     NFT_RECORD_PREFIX,
     ORIGIN_TLD,
+    SPL_TOKEN_PROGRAM_ID,
     TLD_HOUSE_PREFIX,
     TLD_HOUSE_PROGRAM_ID,
+    TOKEN_METADATA_PROGRAM_ID,
 } from './constants';
 import { NameRecordHeader } from './state/name-record-header';
 import { Tag } from './types/tag';
@@ -80,7 +82,7 @@ export async function getOriginNameAccountKey(
     originTld: string = ORIGIN_TLD,
 ): Promise<PublicKey> {
     const hashed_name = await getHashedName(originTld);
-    const [nameAccountKey] = await getNameAccountKeyWithBump(
+    const [nameAccountKey] = getNameAccountKeyWithBump(
         hashed_name,
         undefined,
         undefined,
@@ -270,3 +272,155 @@ export function findNameHouse(tldHouse: PublicKey) {
         NAME_HOUSE_PROGRAM_ID,
     );
 }
+
+export const findMetadataAddress = (mint: PublicKey): PublicKey => {
+  return PublicKey.findProgramAddressSync(
+      [
+          Buffer.from('metadata'),
+          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+          mint.toBuffer(),
+      ],
+      TOKEN_METADATA_PROGRAM_ID,
+  )[0];
+};
+
+
+export async function performReverseLookupBatched(
+    connection: Connection,
+    nameAccounts: PublicKey[],
+    tldHouse: PublicKey,
+): Promise<(string | undefined)[]> {
+    const promises = nameAccounts.map(async nameAccount => {
+        const reverseLookupHashedName = await getHashedName(
+            nameAccount.toBase58(),
+        );
+        const [reverseLookUpAccount] = getNameAccountKeyWithBump(
+            reverseLookupHashedName,
+            tldHouse,
+            undefined,
+        );
+        return reverseLookUpAccount;
+    });
+    const reverseLookUpAccounts: PublicKey[] = await Promise.all(promises);
+    const reverseLookupAccountInfos = await connection.getMultipleAccountsInfo(
+        reverseLookUpAccounts,
+    );
+
+    return reverseLookupAccountInfos.map(reverseLookupAccountInfo => {
+        const domain = reverseLookupAccountInfo?.data
+            .subarray(
+                NameRecordHeader.byteSize,
+                reverseLookupAccountInfo?.data.length,
+            )
+            .toString();
+        return domain;
+    });
+}
+
+export function delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export const getParsedAllDomainsNftAccountsByOwner = async (
+    owner: PublicKey,
+    connection: Connection,
+    expectedCreator: PublicKey,
+) => {
+    const { value: splAccounts } =
+        await connection.getParsedTokenAccountsByOwner(owner, {
+            programId: SPL_TOKEN_PROGRAM_ID,
+        });
+
+    const nftAccounts = splAccounts
+        .filter(t => {
+            const amount = t.account?.data?.parsed?.info?.tokenAmount?.uiAmount;
+            const decimals =
+                t.account?.data?.parsed?.info?.tokenAmount?.decimals;
+            return decimals === 0 && amount === 1;
+        })
+        .map(t => {
+            const address = t.account?.data?.parsed?.info?.mint;
+            return address;
+        });
+    const ownerDomains = await getOwnedDomains(
+        nftAccounts,
+        connection,
+        expectedCreator,
+    );
+
+    return ownerDomains;
+};
+
+const getOwnedDomains = async (
+    nftAddresses: string[],
+    connection: Connection,
+    expectedCreator: PublicKey,
+) => {
+    const ownedDomains: string[] = [];
+    const verifiedCreatorByteOffset = 326;
+    const verifiedCreatorVerfiiedByteOffset = 326;
+
+    if (nftAddresses.length > 100) {
+        while (nftAddresses.length > 0) {
+            let nftMetadataKeys = nftAddresses
+                .splice(0, 100)
+                .map((mint: string) =>
+                    findMetadataAddress(new PublicKey(mint)),
+                );
+            const nftsMetadata = await connection.getMultipleAccountsInfo(
+                nftMetadataKeys,
+            );
+            for (const nftMetadata of nftsMetadata) {
+                if (nftMetadata) {
+                    const verifiedCreatorAddress = new PublicKey(
+                        nftMetadata.data.subarray(verifiedCreatorByteOffset, verifiedCreatorByteOffset + 32),
+                    );
+                    const isVerified = Boolean(
+                        nftMetadata.data.subarray(verifiedCreatorVerfiiedByteOffset, verifiedCreatorVerfiiedByteOffset + 1),
+                    );
+                    if (
+                        isVerified &&
+                        verifiedCreatorAddress.toString() ===
+                            expectedCreator.toString()
+                    ) {
+                        const domainName = nftMetadata.data
+                            .subarray(66, 101)
+                            .toString()
+                            .replace(/\u0000/g, '');
+                        ownedDomains.push(domainName);
+                    }
+                }
+            }
+        }
+    } else {
+        let nftMetadataKeys = nftAddresses.map((mint: string) =>
+            findMetadataAddress(new PublicKey(mint)),
+        );
+        const nftsMetadata = await connection.getMultipleAccountsInfo(
+            nftMetadataKeys,
+        );
+        for (const nftMetadata of nftsMetadata) {
+            if (nftMetadata) {
+                const verifiedCreatorAddress = new PublicKey(
+                    nftMetadata.data.subarray(verifiedCreatorByteOffset, verifiedCreatorByteOffset + 32),
+                );
+                const isVerified = Boolean(
+                    nftMetadata.data.subarray(verifiedCreatorVerfiiedByteOffset, verifiedCreatorVerfiiedByteOffset + 1),
+                );
+                if (
+                    isVerified &&
+                    verifiedCreatorAddress.toString() ===
+                        expectedCreator.toString()
+                ) {
+                    const domainName = nftMetadata.data
+                        .subarray(66, 101)
+                        .toString()
+                        .replace(/\u0000/g, '');
+                    ownedDomains.push(domainName);
+                }
+            }
+        }
+    }
+
+    return ownedDomains;
+};
