@@ -17,8 +17,8 @@
     "declarationMap": true,
     "inlineSources": true,
     "skipLibCheck": true,
+    "rootDir": "./src",
   },
-  "rootDir": "./src",
   "include": ["src/**/*.ts"],
   "exclude": [
     "tests",

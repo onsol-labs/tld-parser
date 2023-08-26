@@ -18,6 +18,7 @@ import {
     performReverseLookupBatched,
 } from './utils';
 import { MULTIPLE_ACCOUNT_INFO_MAX } from './constants';
+import { NameAccountAndDomain, getDomainKey } from './name-record-handler';
 
 export class TldParser {
     constructor(private readonly connection: Connection) {}
@@ -169,6 +170,7 @@ export class TldParser {
             .replace(/\0.*$/g, '');
         return tld;
     }
+    
     /**
      * retrieves domain from name account via tldParent account.
      *
@@ -202,6 +204,7 @@ export class TldParser {
         const domain = reverseLookUpResult?.data?.toString();
         return domain;
     }
+
     /**
      * retrieves main domain name account and its domain tld from user address.
      *
@@ -219,10 +222,10 @@ export class TldParser {
         );
         return mainDomain;
     }
+
     /**
-     * retrieves all parsed domains as strings in an array for user in a specific TLD.
+     * retrieves all parsed domains as strings with name accounts in an array for user in a specific TLD.
      * in alphabetical order
-     * i.e. ['miester.all']
      *
      * @param userAccount user publickey or string
      * @param tld tld to be retrieved from
@@ -230,7 +233,7 @@ export class TldParser {
     async getParsedAllUserDomainsFromTldUnwrapped(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<string[]> {
+    ): Promise<NameAccountAndDomain[]> {
         const tldName = '.' + tld;
 
         const nameOriginTldKey = await getOriginNameAccountKey();
@@ -249,7 +252,7 @@ export class TldParser {
             userAccount,
             parentAccountKey,
         );
-        let parsedDomains: string[] = [];
+        let parsedNameAccountsAndDomains: NameAccountAndDomain[] = [];
 
         for (let i = 0; i < allDomains.length; i += MULTIPLE_ACCOUNT_INFO_MAX) {
             await delay(100);
@@ -263,25 +266,32 @@ export class TldParser {
                 batch,
                 tldHouse,
             );
-            const domainsWithTlds = batchReverseLookup.map(domain => {
-                return domain + tldName;
-            });
-            if (domainsWithTlds.length > 0) {
-                domainsWithTlds.sort((a, b) =>
-                    a.localeCompare(b, undefined, {
+            const domainsWithTldsAndNameAccounts = batchReverseLookup.map(
+                (domain, index) => {
+                    return {
+                        nameAccount: batch[index],
+                        domain: domain + tldName,
+                    };
+                },
+            );
+            if (domainsWithTldsAndNameAccounts.length > 0) {
+                domainsWithTldsAndNameAccounts.sort((a, b) =>
+                    a.domain.localeCompare(b.domain, undefined, {
                         numeric: true,
                         sensitivity: 'base',
                     }),
                 );
             }
-            parsedDomains.push(...domainsWithTlds);
+            parsedNameAccountsAndDomains.push(
+                ...domainsWithTldsAndNameAccounts,
+            );
         }
-        return parsedDomains;
+        return parsedNameAccountsAndDomains;
     }
+
     /**
-     * retrieves all parsed domains (strings) including NFTs in an array for any user in a specific TLD.
+     * retrieves all parsed domains and name accounts including NFTs in an array for any user in a specific TLD.
      * in alphabetical order
-     * i.e. ['miester.all']
      *
      * @param userAccount user publickey or string
      * @param tld tld to be retrieved from
@@ -289,7 +299,7 @@ export class TldParser {
     async getParsedAllUserDomainsFromTld(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<string[]> {
+    ): Promise<NameAccountAndDomain[]> {
         const tldName = '.' + tld;
 
         const nameOriginTldKey = await getOriginNameAccountKey();
@@ -308,7 +318,8 @@ export class TldParser {
             userAccount,
             parentAccountKey,
         );
-        let parsedDomains: string[] = [];
+        let parsedNameAccountsAndDomains: NameAccountAndDomain[] = [];
+
         const allNFTDomains = await getParsedAllDomainsNftAccountsByOwner(
             userAccount,
             this.connection,
@@ -317,7 +328,16 @@ export class TldParser {
         const nftDomainsWithTlds = allNFTDomains.map(domain => {
             return domain + tldName;
         });
-        parsedDomains.push(...nftDomainsWithTlds);
+        const domainsWithTldsAndNameAccounts = await Promise.all(
+            nftDomainsWithTlds.map(async domain => {
+                return {
+                    nameAccount: (await getDomainKey(domain)).pubkey,
+                    domain,
+                };
+            }),
+        );
+
+        parsedNameAccountsAndDomains.push(...domainsWithTldsAndNameAccounts);
 
         for (let i = 0; i < allDomains.length; i += MULTIPLE_ACCOUNT_INFO_MAX) {
             await delay(100);
@@ -331,34 +351,42 @@ export class TldParser {
                 batch,
                 tldHouse,
             );
-            const domainsWithTlds = batchReverseLookup.map(domain => {
-                return domain + tldName;
-            });
-            parsedDomains.push(...domainsWithTlds);
+            const domainsWithTldsAndNameAccounts = batchReverseLookup.map(
+                (domain, index) => {
+                    return {
+                        nameAccount: batch[index],
+                        domain: domain + tldName,
+                    };
+                },
+            );
+            parsedNameAccountsAndDomains.push(
+                ...domainsWithTldsAndNameAccounts,
+            );
         }
-        if (parsedDomains.length > 0) {
-            parsedDomains.sort((a, b) =>
-                a.localeCompare(b, undefined, {
+        if (parsedNameAccountsAndDomains.length > 0) {
+            parsedNameAccountsAndDomains.sort((a, b) =>
+                a.domain.localeCompare(b.domain, undefined, {
                     numeric: true,
                     sensitivity: 'base',
                 }),
             );
         }
-        return parsedDomains;
+        return parsedNameAccountsAndDomains;
     }
+
     /**
-     * retrieves all parsed domains (strings) for user.
+     * retrieves all parsed domains and name accounts for user.
      * in alphabetical order
-     * i.e. ['miester.all']
      *
      * @param userAccount user publickey or string
      * @param tld tld to be retrieved from
      */
     async getParsedAllUserDomainsUnwrapped(
         userAccount: PublicKey | string,
-    ): Promise<string[]> {
+    ): Promise<NameAccountAndDomain[]> {
         const allTlds = await getAllTld(this.connection);
-        let parsedDomains: string[] = [];
+        let parsedNameAccountsAndDomains: NameAccountAndDomain[] = [];
+
         if (typeof userAccount == 'string') {
             userAccount = new PublicKey(userAccount);
         }
@@ -387,35 +415,43 @@ export class TldParser {
                     batch,
                     tldHouse,
                 );
-                const domainsWithTlds = batchReverseLookup.map(domain => {
-                    return domain + tldName;
-                });
-                parsedDomains.push(...domainsWithTlds);
+                const domainsWithTldsAndNameAccounts = batchReverseLookup.map(
+                    (domain, index) => {
+                        return {
+                            nameAccount: batch[index],
+                            domain: domain + tldName,
+                        };
+                    },
+                );
+                parsedNameAccountsAndDomains.push(
+                    ...domainsWithTldsAndNameAccounts,
+                );
             }
         }
-        if (parsedDomains.length > 0) {
-            parsedDomains.sort((a, b) =>
-                a.localeCompare(b, undefined, {
+        if (parsedNameAccountsAndDomains.length > 0) {
+            parsedNameAccountsAndDomains.sort((a, b) =>
+                a.domain.localeCompare(b.domain, undefined, {
                     numeric: true,
                     sensitivity: 'base',
                 }),
             );
         }
-        return parsedDomains;
+        return parsedNameAccountsAndDomains;
     }
+
     /**
-     * retrieves all parsed domains (strings) including NFTs for user.
+     * retrieves all parsed domains and name accounts including NFTs for user.
      * in alphabetical order
-     * i.e. ['miester.all']
      *
      * @param userAccount user publickey or string
      * @param tld tld to be retrieved from
      */
     async getParsedAllUserDomains(
         userAccount: PublicKey | string,
-    ): Promise<string[]> {
+    ): Promise<NameAccountAndDomain[]> {
         const allTlds = await getAllTld(this.connection);
-        let parsedDomains: string[] = [];
+        let parsedNameAccountsAndDomains: NameAccountAndDomain[] = [];
+
         if (typeof userAccount == 'string') {
             userAccount = new PublicKey(userAccount);
         }
@@ -435,7 +471,18 @@ export class TldParser {
             const nftDomainsWithTlds = allNFTDomains.map(domain => {
                 return domain + tldName;
             });
-            parsedDomains.push(...nftDomainsWithTlds);
+            const domainsWithTldsAndNameAccounts = await Promise.all(
+                nftDomainsWithTlds.map(async domain => {
+                    return {
+                        nameAccount: (await getDomainKey(domain)).pubkey,
+                        domain,
+                    };
+                }),
+            );
+
+            parsedNameAccountsAndDomains.push(
+                ...domainsWithTldsAndNameAccounts,
+            );
 
             for (
                 let i = 0;
@@ -453,20 +500,27 @@ export class TldParser {
                     batch,
                     tldHouse,
                 );
-                const domainsWithTlds = batchReverseLookup.map(domain => {
-                    return domain + tldName;
-                });
-                parsedDomains.push(...domainsWithTlds);
+                const domainsWithTldsAndNameAccounts = batchReverseLookup.map(
+                    (domain, index) => {
+                        return {
+                            nameAccount: batch[index],
+                            domain: domain + tldName,
+                        };
+                    },
+                );
+                parsedNameAccountsAndDomains.push(
+                    ...domainsWithTldsAndNameAccounts,
+                );
             }
         }
-        if (parsedDomains.length > 0) {
-            parsedDomains.sort((a, b) =>
-                a.localeCompare(b, undefined, {
+        if (parsedNameAccountsAndDomains.length > 0) {
+            parsedNameAccountsAndDomains.sort((a, b) =>
+                a.domain.localeCompare(b.domain, undefined, {
                     numeric: true,
                     sensitivity: 'base',
                 }),
             );
         }
-        return parsedDomains;
+        return parsedNameAccountsAndDomains;
     }
 }

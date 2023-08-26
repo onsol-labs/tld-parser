@@ -68,3 +68,5 @@ const _getNameAccount = async (name: string, parent?: PublicKey) => {
     let [pubkey] = await getNameAccountKeyWithBump(hashed, undefined, parent);
     return { pubkey, hashed };
 };
+
+export type NameAccountAndDomain = { nameAccount: PublicKey; domain: string };

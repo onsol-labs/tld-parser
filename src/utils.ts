@@ -435,3 +435,20 @@ const getOwnedDomains = async (
 
     return ownedDomains;
 };
+
+export function splitDomainTld(domain: string) {
+    const parts = domain.split('.');
+    let tld = '',
+        domainName = '',
+        subdomain = '';
+
+    if (parts.length === 1) {
+        domainName = parts[0];
+    } else {
+        tld = '.' + parts[parts.length - 1];
+        domainName = parts[parts.length - 2];
+        subdomain = parts.slice(0, parts.length - 2).join('.');
+    }
+
+    return [tld, domainName, subdomain];
+}
