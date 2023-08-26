@@ -253,7 +253,10 @@ export class TldParser {
 
         for (let i = 0; i < allDomains.length; i += MULTIPLE_ACCOUNT_INFO_MAX) {
             await delay(100);
-            const end = Math.min(i + MULTIPLE_ACCOUNT_INFO_MAX, allDomains.length);
+            const end = Math.min(
+                i + MULTIPLE_ACCOUNT_INFO_MAX,
+                allDomains.length,
+            );
             const batch = allDomains.slice(i, end);
             const batchReverseLookup = await performReverseLookupBatched(
                 this.connection,
@@ -318,7 +321,10 @@ export class TldParser {
 
         for (let i = 0; i < allDomains.length; i += MULTIPLE_ACCOUNT_INFO_MAX) {
             await delay(100);
-            const end = Math.min(i + MULTIPLE_ACCOUNT_INFO_MAX, allDomains.length);
+            const end = Math.min(
+                i + MULTIPLE_ACCOUNT_INFO_MAX,
+                allDomains.length,
+            );
             const batch = allDomains.slice(i, end);
             const batchReverseLookup = await performReverseLookupBatched(
                 this.connection,
@@ -365,9 +371,16 @@ export class TldParser {
                 parentAccount,
             );
 
-            for (let i = 0; i < allDomains.length; i += MULTIPLE_ACCOUNT_INFO_MAX) {
+            for (
+                let i = 0;
+                i < allDomains.length;
+                i += MULTIPLE_ACCOUNT_INFO_MAX
+            ) {
                 await delay(100);
-                const end = Math.min(i + MULTIPLE_ACCOUNT_INFO_MAX, allDomains.length);
+                const end = Math.min(
+                    i + MULTIPLE_ACCOUNT_INFO_MAX,
+                    allDomains.length,
+                );
                 const batch = allDomains.slice(i, end);
                 const batchReverseLookup = await performReverseLookupBatched(
                     this.connection,
@@ -424,9 +437,16 @@ export class TldParser {
             });
             parsedDomains.push(...nftDomainsWithTlds);
 
-            for (let i = 0; i < allDomains.length; i += MULTIPLE_ACCOUNT_INFO_MAX) {
+            for (
+                let i = 0;
+                i < allDomains.length;
+                i += MULTIPLE_ACCOUNT_INFO_MAX
+            ) {
                 await delay(100);
-                const end = Math.min(i + MULTIPLE_ACCOUNT_INFO_MAX, allDomains.length);
+                const end = Math.min(
+                    i + MULTIPLE_ACCOUNT_INFO_MAX,
+                    allDomains.length,
+                );
                 const batch = allDomains.slice(i, end);
                 const batchReverseLookup = await performReverseLookupBatched(
                     this.connection,

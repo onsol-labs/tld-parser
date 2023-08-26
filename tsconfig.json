@@ -19,9 +19,8 @@
     "skipLibCheck": true,
   },
   "rootDir": "./src",
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "tests/**/*.ts"],
   "exclude": [
-    "tests",
     "dist",
     "node_modules",
     "script",

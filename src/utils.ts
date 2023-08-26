@@ -274,16 +274,15 @@ export function findNameHouse(tldHouse: PublicKey) {
 }
 
 export const findMetadataAddress = (mint: PublicKey): PublicKey => {
-  return PublicKey.findProgramAddressSync(
-      [
-          Buffer.from('metadata'),
-          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-          mint.toBuffer(),
-      ],
-      TOKEN_METADATA_PROGRAM_ID,
-  )[0];
+    return PublicKey.findProgramAddressSync(
+        [
+            Buffer.from('metadata'),
+            TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+            mint.toBuffer(),
+        ],
+        TOKEN_METADATA_PROGRAM_ID,
+    )[0];
 };
-
 
 export async function performReverseLookupBatched(
     connection: Connection,
@@ -373,10 +372,16 @@ const getOwnedDomains = async (
             for (const nftMetadata of nftsMetadata) {
                 if (nftMetadata) {
                     const verifiedCreatorAddress = new PublicKey(
-                        nftMetadata.data.subarray(verifiedCreatorByteOffset, verifiedCreatorByteOffset + 32),
+                        nftMetadata.data.subarray(
+                            verifiedCreatorByteOffset,
+                            verifiedCreatorByteOffset + 32,
+                        ),
                     );
                     const isVerified = Boolean(
-                        nftMetadata.data.subarray(verifiedCreatorVerfiiedByteOffset, verifiedCreatorVerfiiedByteOffset + 1),
+                        nftMetadata.data.subarray(
+                            verifiedCreatorVerfiiedByteOffset,
+                            verifiedCreatorVerfiiedByteOffset + 1,
+                        ),
                     );
                     if (
                         isVerified &&
@@ -402,10 +407,16 @@ const getOwnedDomains = async (
         for (const nftMetadata of nftsMetadata) {
             if (nftMetadata) {
                 const verifiedCreatorAddress = new PublicKey(
-                    nftMetadata.data.subarray(verifiedCreatorByteOffset, verifiedCreatorByteOffset + 32),
+                    nftMetadata.data.subarray(
+                        verifiedCreatorByteOffset,
+                        verifiedCreatorByteOffset + 32,
+                    ),
                 );
                 const isVerified = Boolean(
-                    nftMetadata.data.subarray(verifiedCreatorVerfiiedByteOffset, verifiedCreatorVerfiiedByteOffset + 1),
+                    nftMetadata.data.subarray(
+                        verifiedCreatorVerfiiedByteOffset,
+                        verifiedCreatorVerfiiedByteOffset + 1,
+                    ),
                 );
                 if (
                     isVerified &&
