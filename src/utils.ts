@@ -50,9 +50,9 @@ export async function getNameOwner(
     nameAccountKey: PublicKey,
     tldHouse?: PublicKey,
 ): Promise<PublicKey | undefined> {
-    const owner = (
-        await NameRecordHeader.fromAccountAddress(connection, nameAccountKey)
-    )?.owner;
+    const nameAccount = await NameRecordHeader.fromAccountAddress(connection, nameAccountKey)
+    const owner = nameAccount.owner;
+    if (!nameAccount.isValid) return undefined;
     if (!tldHouse) return owner;
     const [nameHouse] = findNameHouse(tldHouse);
     const [nftRecord] = findNftRecord(nameAccountKey, nameHouse);

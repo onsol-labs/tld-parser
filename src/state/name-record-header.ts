@@ -25,12 +25,14 @@ export class NameRecordHeader {
                 1000,
         );
         this.nonTransferable = obj.nonTransferable[0] !== 0;
+        // grace period  = 45 days * 24 hours * 60 minutes * 60 seconds * 1000 millie seconds = 3_888_000 seconds
+        const gracePeriod = 45 * 24 * 60 * 60 * 1000;
         this.isValid =
             new BinaryReader(Buffer.from(obj.expiresAt))
                 .readU64()
                 .toNumber() === 0
                 ? true
-                : this.expiresAt > new Date();
+                : this.expiresAt > new Date(Date.now() + gracePeriod);
         this.owner = this.isValid ? new PublicKey(obj.owner) : undefined;
     }
 
