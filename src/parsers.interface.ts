@@ -1,8 +1,7 @@
 import { PublicKey, Connection } from '@solana/web3.js';
-import { getDomainKey, NameAccountAndDomain } from './solana/name-record-handler';
-import { SolanaTldParser } from './solana/parsers';
-import { MainDomain } from './solana/state/main-domain';
-import { NameRecordHeader } from './solana/state/name-record-header';
+import { NameAccountAndDomain } from './svm/name-record-handler';
+import { MainDomain } from './svm/state/main-domain';
+import { NameRecordHeader } from './svm/state/name-record-header';
 
 export interface ITldParser {
     connection: Connection;

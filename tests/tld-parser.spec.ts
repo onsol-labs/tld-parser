@@ -2,7 +2,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 
 import { NameRecordHeader, TldParser, getDomainKey } from '../src';
 
-const RPC_URL = 'https://alldomai-main8fd-2657.mainnet.rpcpool.com/277c292a-227b-4cb0-acb3-726429736c24';
+const RPC_URL = '';
 const connection = new Connection(RPC_URL);
 const owner = new PublicKey(
     '2EGGxj2qbNAJNgLCPKca8sxZYetyTjnoRspTPjzN2D67',

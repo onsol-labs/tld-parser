@@ -1,8 +1,8 @@
 import { PublicKey, Connection } from '@solana/web3.js';
-import { NameAccountAndDomain } from './solana/name-record-handler';
-import { SolanaTldParser } from './solana/parsers';
-import { MainDomain } from './solana/state/main-domain';
-import { NameRecordHeader } from './solana/state/name-record-header';
+import { NameAccountAndDomain } from './svm/name-record-handler';
+import { TldParserSvm } from './svm/parsers';
+import { MainDomain } from './svm/state/main-domain';
+import { NameRecordHeader } from './svm/state/name-record-header';
 import { ITldParser } from './parsers.interface';
 
 export class TldParser implements ITldParser {
@@ -12,9 +12,12 @@ export class TldParser implements ITldParser {
         this.connection = connection;
         if (new.target === TldParser) {
             switch (chain?.toLowerCase()) {
+                case "yona":
+                case "eclipse":
+                case "termina":
                 case "solana":
-                case undefined: // Default to SolanaTldParser if no type is specified
-                    return new SolanaTldParser(connection);
+                case undefined: // Default to TldParserSvm if no type is specified
+                    return new TldParserSvm(connection);
                 default:
                     throw new Error(`Unsupported TldParser chain: ${chain}`);
             }
