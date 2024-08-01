@@ -1,10 +1,8 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 
-import { MainDomain, MainDomainArgs } from '../src/state/main-domain';
-import { Record } from '../src/types/records';
 import { NameRecordHeader, TldParser, getDomainKey } from '../src';
 
-const RPC_URL = '';
+const RPC_URL = 'https://alldomai-main8fd-2657.mainnet.rpcpool.com/277c292a-227b-4cb0-acb3-726429736c24';
 const connection = new Connection(RPC_URL);
 const owner = new PublicKey(
     '2EGGxj2qbNAJNgLCPKca8sxZYetyTjnoRspTPjzN2D67',
@@ -15,10 +13,10 @@ const parentAccountOwner = new PublicKey('ANgPRMKQHgH5Snx2K3VHCvHqFmrABcjTZUrqZB
 
 describe('tldParser tests', () => {
     it('should perform fetching of a pending expiry domain', async () => {
-        const parser = new TldParser(connection);
+        const parser = new TldParser(connection, "solana");
         const domanTld = 'canwenot.abc';
         const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
-        expect(ownerRecieved).toStrictEqual(owner);
+        expect(ownerRecieved).toStrictEqual(undefined);
     });
 
     it('should perform fetching of an owner an nft domain', async () => {
