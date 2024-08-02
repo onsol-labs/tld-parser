@@ -11,16 +11,23 @@ export class TldParser implements ITldParser {
     constructor(connection: Connection, chain?: string) {
         this.connection = connection;
         if (new.target === TldParser) {
-            switch (chain?.toLowerCase()) {
-                case "yona":
-                case "eclipse":
-                case "termina":
-                case "solana":
-                case undefined: // Default to TldParserSvm if no type is specified
-                    return new TldParserSvm(connection);
-                default:
-                    throw new Error(`Unsupported TldParser chain: ${chain}`);
-            }
+            return TldParser.createParser(connection, chain);
+        }
+    }
+
+    private static createParser(
+        connection: Connection,
+        chain?: string,
+    ): ITldParser {
+        switch (chain?.toLowerCase()) {
+            case 'yona':
+            case 'eclipse':
+            case 'termina':
+            case 'solana':
+            case undefined:
+                return new TldParserSvm(connection);
+            default:
+                throw new Error(`Unsupported TldParser chain: ${chain}`);
         }
     }
 
@@ -31,8 +38,8 @@ export class TldParser implements ITldParser {
      */
     async getAllUserDomains(
         userAccount: PublicKey | string,
-    ): Promise<PublicKey[]>{
-        throw Error("Not implemented")
+    ): Promise<PublicKey[]> {
+        throw new Error('Method not implemented.');
     }
 
     /**
@@ -44,9 +51,10 @@ export class TldParser implements ITldParser {
     async getAllUserDomainsFromTld(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<PublicKey[]>{
-        throw Error("Not implemented")
+    ): Promise<PublicKey[]> {
+        throw new Error('Method not implemented.');
     }
+
     /**
      * retrieves owner of a specific Name Account from domain.tld.
      *
@@ -54,8 +62,8 @@ export class TldParser implements ITldParser {
      */
     async getOwnerFromDomainTld(
         domainTld: string,
-    ): Promise<PublicKey | undefined>{
-        throw Error("Not implemented")
+    ): Promise<PublicKey | undefined> {
+        throw new Error('Method not implemented.');
     }
 
     /**
@@ -65,8 +73,8 @@ export class TldParser implements ITldParser {
      */
     async getNameRecordFromDomainTld(
         domainTld: string,
-    ): Promise<NameRecordHeader | undefined>{
-        throw Error("Not implemented")
+    ): Promise<NameRecordHeader | undefined> {
+        throw new Error('Method not implemented.');
     }
 
     /**
@@ -76,10 +84,10 @@ export class TldParser implements ITldParser {
      */
     async getTldFromParentAccount(
         parentAccount: PublicKey | string,
-    ): Promise<string>{
-        throw Error("Not implemented")
+    ): Promise<string> {
+        throw new Error('Method not implemented.');
     }
-    
+
     /**
      * retrieves domain from name account via tldParent account.
      *
@@ -89,8 +97,8 @@ export class TldParser implements ITldParser {
     async reverseLookupNameAccount(
         nameAccount: PublicKey | string,
         parentAccountOwner: PublicKey | string,
-    ): Promise<string>{
-        throw Error("Not implemented")
+    ): Promise<string> {
+        throw new Error('Method not implemented.');
     }
 
     /**
@@ -98,8 +106,8 @@ export class TldParser implements ITldParser {
      *
      * @param userAddress user publickey or string
      */
-    async getMainDomain(userAddress: PublicKey | string): Promise<MainDomain>{
-        throw Error("Not implemented")
+    async getMainDomain(userAddress: PublicKey | string): Promise<MainDomain> {
+        throw new Error('Method not implemented.');
     }
 
     /**
@@ -109,11 +117,11 @@ export class TldParser implements ITldParser {
      * @param userAccount user publickey or string
      * @param tld tld to be retrieved from
      */
-    getParsedAllUserDomainsFromTldUnwrapped(
+    async getParsedAllUserDomainsFromTldUnwrapped(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<NameAccountAndDomain[]>{
-        throw Error("Not implemented")
+    ): Promise<NameAccountAndDomain[]> {
+        throw new Error('Method not implemented.');
     }
 
     /**
@@ -123,11 +131,11 @@ export class TldParser implements ITldParser {
      * @param userAccount user publickey or string
      * @param tld tld to be retrieved from
      */
-    getParsedAllUserDomainsFromTld(
+    async getParsedAllUserDomainsFromTld(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<NameAccountAndDomain[]>{
-        throw Error("Not implemented")
+    ): Promise<NameAccountAndDomain[]> {
+        throw new Error('Method not implemented.');
     }
 
     /**
@@ -135,24 +143,22 @@ export class TldParser implements ITldParser {
      * in alphabetical order
      *
      * @param userAccount user publickey or string
-     * @param tld tld to be retrieved from
      */
-    getParsedAllUserDomainsUnwrapped(
+    async getParsedAllUserDomainsUnwrapped(
         userAccount: PublicKey | string,
     ): Promise<NameAccountAndDomain[]> {
-        throw Error("Not implemented")
+        throw new Error('Method not implemented.');
     }
+
     /**
      * retrieves all parsed domains and name accounts including NFTs for user.
      * in alphabetical order
      *
      * @param userAccount user publickey or string
-     * @param tld tld to be retrieved from
      */
     async getParsedAllUserDomains(
         userAccount: PublicKey | string,
-    ): Promise<NameAccountAndDomain[]>{
-        throw Error("Not implemented")
+    ): Promise<NameAccountAndDomain[]> {
+        throw new Error('Method not implemented.');
     }
-
 }
