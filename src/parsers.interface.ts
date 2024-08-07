@@ -2,9 +2,11 @@ import { PublicKey, Connection } from '@solana/web3.js';
 import { NameAccountAndDomain } from './svm/name-record-handler';
 import { MainDomain } from './svm/state/main-domain';
 import { NameRecordHeader } from './svm/state/name-record-header';
+import { Aptos } from '@aptos-labs/ts-sdk';
+import { NameRecord } from 'move';
 
 export interface ITldParser {
-    connection: Connection;
+    connection: Connection | Aptos;
     /**
      * retrieves all nameAccounts for any user.
      *
@@ -12,7 +14,7 @@ export interface ITldParser {
      */
     getAllUserDomains(
         userAccount: PublicKey | string,
-    ): Promise<PublicKey[]> 
+    ): Promise<PublicKey[] | NameRecord[]> 
     /**
      * retrieves all nameaccounts for any user in a specific tld.
      *
@@ -22,7 +24,7 @@ export interface ITldParser {
     getAllUserDomainsFromTld(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<PublicKey[]> 
+    ): Promise<PublicKey[] | NameRecord[]> 
 
     /**
      * retrieves owner of a specific Name Account from domain.tld.
@@ -31,7 +33,7 @@ export interface ITldParser {
      */
     getOwnerFromDomainTld(
         domainTld: string,
-    ): Promise<PublicKey | undefined> 
+    ): Promise<PublicKey | undefined | string> 
 
     /**
      * retrieves domainTld data a domain from domain.tld.
@@ -40,7 +42,7 @@ export interface ITldParser {
      */
     getNameRecordFromDomainTld(
         domainTld: string,
-    ): Promise<NameRecordHeader | undefined> 
+    ): Promise<NameRecordHeader | NameRecord | undefined> 
 
     /**
      * retrieves tld from parent name via TldHouse account.
@@ -67,7 +69,7 @@ export interface ITldParser {
      *
      * @param userAddress user publickey or string
      */
-    getMainDomain(userAddress: PublicKey | string): Promise<MainDomain> 
+    getMainDomain(userAddress: PublicKey | string): Promise<MainDomain | NameRecord> 
     /**
      * retrieves all parsed domains as strings with name accounts in an array for user in a specific TLD.
      * in alphabetical order

@@ -51,6 +51,7 @@
     "test": "jest --config jest.config.ts"
   },
   "dependencies": {
+    "@aptos-labs/ts-sdk": "^1.26.0",
     "@ethersproject/sha2": "^5.7.0",
     "@metaplex-foundation/beet-solana": "^0.4.0"
   },

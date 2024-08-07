@@ -4,19 +4,30 @@ import { TldParserSvm } from './svm/parsers';
 import { MainDomain } from './svm/state/main-domain';
 import { NameRecordHeader } from './svm/state/name-record-header';
 import { ITldParser } from './parsers.interface';
+import { Aptos, AptosSettings } from '@aptos-labs/ts-sdk';
+import { TldParserMove } from './move/parsers';
+import { NameRecord } from './move';
 
+/**
+ * TldParser class
+ *
+ * This class has been improved to maintain compatibility with previous versions.
+ * The methods present in this class are provided for backwards compatibility
+ * and to facilitate easy migration to v1 in future builds.
+ * 
+ * The TldParser for multiple chains will be implemented, and Solana integration will remain unchanged without any breaking modifications.
+ */
 export class TldParser implements ITldParser {
-    connection: Connection;
+    connection: Connection | Aptos;
 
-    constructor(connection: Connection, chain?: string) {
-        this.connection = connection;
+    constructor(connection: Connection | AptosSettings, chain?: string) {
         if (new.target === TldParser) {
             return TldParser.createParser(connection, chain);
         }
     }
 
     private static createParser(
-        connection: Connection,
+        connection: Connection | AptosSettings,
         chain?: string,
     ): ITldParser {
         switch (chain?.toLowerCase()) {
@@ -26,6 +37,8 @@ export class TldParser implements ITldParser {
             case 'solana':
             case undefined:
                 return new TldParserSvm(connection);
+            case 'move':
+                return new TldParserMove(connection);
             default:
                 throw new Error(`Unsupported TldParser chain: ${chain}`);
         }
@@ -38,7 +51,7 @@ export class TldParser implements ITldParser {
      */
     async getAllUserDomains(
         userAccount: PublicKey | string,
-    ): Promise<PublicKey[]> {
+    ): Promise<PublicKey[] | NameRecord[]> {
         throw new Error('Method not implemented.');
     }
 
@@ -51,7 +64,7 @@ export class TldParser implements ITldParser {
     async getAllUserDomainsFromTld(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<PublicKey[]> {
+    ): Promise<PublicKey[] | NameRecord[]> {
         throw new Error('Method not implemented.');
     }
 
@@ -62,7 +75,7 @@ export class TldParser implements ITldParser {
      */
     async getOwnerFromDomainTld(
         domainTld: string,
-    ): Promise<PublicKey | undefined> {
+    ): Promise<PublicKey | undefined | string> {
         throw new Error('Method not implemented.');
     }
 
@@ -73,7 +86,7 @@ export class TldParser implements ITldParser {
      */
     async getNameRecordFromDomainTld(
         domainTld: string,
-    ): Promise<NameRecordHeader | undefined> {
+    ): Promise<NameRecordHeader | NameRecord | undefined> {
         throw new Error('Method not implemented.');
     }
 
@@ -106,7 +119,7 @@ export class TldParser implements ITldParser {
      *
      * @param userAddress user publickey or string
      */
-    async getMainDomain(userAddress: PublicKey | string): Promise<MainDomain> {
+    async getMainDomain(userAddress: PublicKey | string): Promise<MainDomain | NameRecord> {
         throw new Error('Method not implemented.');
     }
 
