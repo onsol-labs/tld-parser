@@ -191,7 +191,7 @@ export class TldParserMove implements ITldParser {
      */
     async getMainDomain(userAddress: string): Promise<NameRecord> {
         const tokens = await this.getAllUserDomains(userAddress);
-        const domain = tokens.find((e: NameRecord) => e.target_address.vec.length > 0);
+        const domain = tokens.find((e: NameRecord) => e.main_domain_address.vec.length > 0);
         return domain;
     }
 
