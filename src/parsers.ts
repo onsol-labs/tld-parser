@@ -14,7 +14,7 @@ import { NameRecord } from './move';
  * This class has been improved to maintain compatibility with previous versions.
  * The methods present in this class are provided for backwards compatibility
  * and to facilitate easy migration to v1 in future builds.
- * 
+ *
  * The TldParser for multiple chains will be implemented, and Solana integration will remain unchanged without any breaking modifications.
  */
 export class TldParser implements ITldParser {
@@ -119,7 +119,9 @@ export class TldParser implements ITldParser {
      *
      * @param userAddress user publickey or string
      */
-    async getMainDomain(userAddress: PublicKey | string): Promise<MainDomain | NameRecord> {
+    async getMainDomain(
+        userAddress: PublicKey | string,
+    ): Promise<MainDomain | NameRecord> {
         throw new Error('Method not implemented.');
     }
 

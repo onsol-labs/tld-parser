@@ -1,12 +1,12 @@
 import { BN } from 'bn.js';
 import { ITldParser } from '../parsers.interface';
-import { Aptos, AptosConfig, AptosSettings, Network } from "@aptos-labs/ts-sdk";
+import { Aptos, AptosConfig, AptosSettings, Network } from '@aptos-labs/ts-sdk';
 import { ALL_DOMAINS_CONTRACT_ADDRESS } from './constants';
 import { Connection } from '@solana/web3.js';
 import { NameRecord } from './types/NameRecordHeader';
 
 export class TldParserMove implements ITldParser {
-    private creatorAddress: string = "";
+    private creatorAddress: string = '';
     private tlds: any[] = [];
     connection: Aptos;
 
@@ -27,9 +27,8 @@ export class TldParserMove implements ITldParser {
                 resourceType: `${ALL_DOMAINS_CONTRACT_ADDRESS}::name_record::ResAddr`,
             });
             this.creatorAddress = createrAddr.res_addr;
-
         } catch (e) {
-            console.error("Failed to initialize TldParser:", e);
+            console.error('Failed to initialize TldParser:', e);
         }
     }
 
@@ -45,10 +44,13 @@ export class TldParserMove implements ITldParser {
             let counter = 1;
             while (counter <= taskCounter) {
                 // console.log(counter, this.creatorAddress, tld_manager.name_vec[counter - 1]);
-                const collection = await this.connection.getCollectionDataByCreatorAddressAndCollectionName({
-                    creatorAddress: this.creatorAddress,
-                    collectionName: tld_manager.name_vec[counter - 1],
-                });
+                const collection =
+                    await this.connection.getCollectionDataByCreatorAddressAndCollectionName(
+                        {
+                            creatorAddress: this.creatorAddress,
+                            collectionName: tld_manager.name_vec[counter - 1],
+                        },
+                    );
                 tlds.push({
                     address: collection.collection_id,
                     name: collection.collection_name,
@@ -57,7 +59,7 @@ export class TldParserMove implements ITldParser {
             }
             this.tlds = tlds;
         } catch (e) {
-            console.error("Failed to update Tlds:", e);
+            console.error('Failed to update Tlds:', e);
         }
     }
 
@@ -66,28 +68,31 @@ export class TldParserMove implements ITldParser {
      *
      * @param userAccount user account in string
      */
-    async getAllUserDomains(
-        userAccount: string,
-    ): Promise<NameRecord[]> {
+    async getAllUserDomains(userAccount: string): Promise<NameRecord[]> {
         await this.updateTlds();
         // Get the Domains
-        const tokens = await this.connection.getAccountOwnedTokens(
-            {
-                accountAddress: userAccount,
-            }
-        );
+        const tokens = await this.connection.getAccountOwnedTokens({
+            accountAddress: userAccount,
+        });
         //filter to the tld collection addresses with collection id in current_token_data
-        const data: NameRecord[] = await Promise.all(tokens
-            .filter(e => this.tlds.find(tld => tld.address == e.current_token_data?.collection_id) != undefined)
-            .map(async e => {
-                const token = await this.connection.getAccountResource(
-                    {
+        const data: NameRecord[] = await Promise.all(
+            tokens
+                .filter(
+                    e =>
+                        this.tlds.find(
+                            tld =>
+                                tld.address ==
+                                e.current_token_data?.collection_id,
+                        ) != undefined,
+                )
+                .map(async e => {
+                    const token = await this.connection.getAccountResource({
                         accountAddress: e.token_data_id,
-                        resourceType: `${ALL_DOMAINS_CONTRACT_ADDRESS}::name_record::NameRecord`
-                    }
-                );
-                return token;
-            }));
+                        resourceType: `${ALL_DOMAINS_CONTRACT_ADDRESS}::name_record::NameRecord`,
+                    });
+                    return token;
+                }),
+        );
         return data;
     }
 
@@ -103,28 +108,28 @@ export class TldParserMove implements ITldParser {
     ): Promise<NameRecord[]> {
         // Ensure the class is initialized
         if (!this.creatorAddress) {
-            throw new Error("TldParser not initialized. Call initialize() first.");
+            throw new Error(
+                'TldParser not initialized. Call initialize() first.',
+            );
         }
         await this.updateTlds();
         const collection = this.tlds.find(e => e.name == tld);
         // Get the Domains
-        const tokens = await this.connection.getAccountOwnedTokensFromCollectionAddress(
-            {
+        const tokens =
+            await this.connection.getAccountOwnedTokensFromCollectionAddress({
                 accountAddress: userAccount,
-                collectionAddress: collection.address
-            }
-        );
+                collectionAddress: collection.address,
+            });
         // Filter to the tld collection addresses with collection id in current_token_data
-        const data: any = await Promise.all(tokens
-            .map(async e => {
-                const token = await this.connection.getAccountResource(
-                    {
-                        accountAddress: e.token_data_id,
-                        resourceType: `${ALL_DOMAINS_CONTRACT_ADDRESS}::name_record::NameRecord`
-                    }
-                );
+        const data: any = await Promise.all(
+            tokens.map(async e => {
+                const token = await this.connection.getAccountResource({
+                    accountAddress: e.token_data_id,
+                    resourceType: `${ALL_DOMAINS_CONTRACT_ADDRESS}::name_record::NameRecord`,
+                });
                 return token;
-            }));
+            }),
+        );
         return data;
     }
 
@@ -139,7 +144,12 @@ export class TldParserMove implements ITldParser {
         const domainTldSplit = domainTld.split('.');
         const domain = domainTldSplit[0];
         const tld = '.' + domainTldSplit[1];
-        const address: any = await this.connection.view({ payload: { function: `${ALL_DOMAINS_CONTRACT_ADDRESS}::tld_manager::get_owner_from_domain`, functionArguments: [tld, domain] } });
+        const address: any = await this.connection.view({
+            payload: {
+                function: `${ALL_DOMAINS_CONTRACT_ADDRESS}::tld_manager::get_owner_from_domain`,
+                functionArguments: [tld, domain],
+            },
+        });
         return address;
     }
 
@@ -156,7 +166,9 @@ export class TldParserMove implements ITldParser {
         const tld = '.' + domainTldSplit[1];
         const owner = await this.getOwnerFromDomainTld(domainTld);
         const tokens = await this.getAllUserDomainsFromTld(owner[0], tld);
-        const name_record: NameRecord = tokens.find((token: { domain_name: string; }) => token.domain_name == domain);
+        const name_record: NameRecord = tokens.find(
+            (token: { domain_name: string }) => token.domain_name == domain,
+        );
         return name_record;
     }
 
@@ -165,12 +177,10 @@ export class TldParserMove implements ITldParser {
      *
      * @param parentAccount parent publickey or string
      */
-    async getTldFromParentAccount(
-        parentAccount: string,
-    ): Promise<string> {
+    async getTldFromParentAccount(parentAccount: string): Promise<string> {
         throw new Error('Method not implemented.');
     }
-    
+
     /**
      * retrieves domain from name account via tldParent account.
      *
@@ -191,7 +201,9 @@ export class TldParserMove implements ITldParser {
      */
     async getMainDomain(userAddress: string): Promise<NameRecord> {
         const tokens = await this.getAllUserDomains(userAddress);
-        const domain = tokens.find((e: NameRecord) => e.main_domain_address.vec.length > 0);
+        const domain = tokens.find(
+            (e: NameRecord) => e.main_domain_address.vec.length > 0,
+        );
         return domain;
     }
 
@@ -243,9 +255,7 @@ export class TldParserMove implements ITldParser {
      * @param userAccount user publickey or string
      * @param tld tld to be retrieved from
      */
-    async getParsedAllUserDomains(
-        userAccount: string,
-    ): Promise<any[]> {
+    async getParsedAllUserDomains(userAccount: string): Promise<any[]> {
         throw new Error('Method not implemented.');
     }
 }

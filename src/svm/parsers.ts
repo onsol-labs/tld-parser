@@ -179,7 +179,7 @@ export class TldParserSvm implements ITldParser {
             .replace(/\0.*$/g, '');
         return tld;
     }
-    
+
     /**
      * retrieves domain from name account via tldParent account.
      *

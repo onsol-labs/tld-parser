@@ -50,7 +50,10 @@ export async function getNameOwner(
     nameAccountKey: PublicKey,
     tldHouse?: PublicKey,
 ): Promise<PublicKey | undefined> {
-    const nameAccount = await NameRecordHeader.fromAccountAddress(connection, nameAccountKey)
+    const nameAccount = await NameRecordHeader.fromAccountAddress(
+        connection,
+        nameAccountKey,
+    );
     const owner = nameAccount.owner;
     if (!nameAccount.isValid) return undefined;
     if (!tldHouse) return owner;

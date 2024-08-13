@@ -14,7 +14,7 @@ export interface ITldParser {
      */
     getAllUserDomains(
         userAccount: PublicKey | string,
-    ): Promise<PublicKey[] | NameRecord[]> 
+    ): Promise<PublicKey[] | NameRecord[]>;
     /**
      * retrieves all nameaccounts for any user in a specific tld.
      *
@@ -24,7 +24,7 @@ export interface ITldParser {
     getAllUserDomainsFromTld(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<PublicKey[] | NameRecord[]> 
+    ): Promise<PublicKey[] | NameRecord[]>;
 
     /**
      * retrieves owner of a specific Name Account from domain.tld.
@@ -33,7 +33,7 @@ export interface ITldParser {
      */
     getOwnerFromDomainTld(
         domainTld: string,
-    ): Promise<PublicKey | undefined | string> 
+    ): Promise<PublicKey | undefined | string>;
 
     /**
      * retrieves domainTld data a domain from domain.tld.
@@ -42,17 +42,15 @@ export interface ITldParser {
      */
     getNameRecordFromDomainTld(
         domainTld: string,
-    ): Promise<NameRecordHeader | NameRecord | undefined> 
+    ): Promise<NameRecordHeader | NameRecord | undefined>;
 
     /**
      * retrieves tld from parent name via TldHouse account.
      *
      * @param parentAccount parent publickey or string
      */
-    getTldFromParentAccount(
-        parentAccount: PublicKey | string,
-    ): Promise<string> 
-    
+    getTldFromParentAccount(parentAccount: PublicKey | string): Promise<string>;
+
     /**
      * retrieves domain from name account via tldParent account.
      *
@@ -62,14 +60,16 @@ export interface ITldParser {
     reverseLookupNameAccount(
         nameAccount: PublicKey | string,
         parentAccountOwner: PublicKey | string,
-    ): Promise<string>
+    ): Promise<string>;
 
     /**
      * retrieves main domain name account and its domain tld from user address.
      *
      * @param userAddress user publickey or string
      */
-    getMainDomain(userAddress: PublicKey | string): Promise<MainDomain | NameRecord> 
+    getMainDomain(
+        userAddress: PublicKey | string,
+    ): Promise<MainDomain | NameRecord>;
     /**
      * retrieves all parsed domains as strings with name accounts in an array for user in a specific TLD.
      * in alphabetical order
@@ -80,7 +80,7 @@ export interface ITldParser {
     getParsedAllUserDomainsFromTldUnwrapped(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<NameAccountAndDomain[]>
+    ): Promise<NameAccountAndDomain[]>;
 
     /**
      * retrieves all parsed domains and name accounts including NFTs in an array for any user in a specific TLD.
@@ -92,7 +92,7 @@ export interface ITldParser {
     getParsedAllUserDomainsFromTld(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<NameAccountAndDomain[]> 
+    ): Promise<NameAccountAndDomain[]>;
 
     /**
      * retrieves all parsed domains and name accounts for user.
@@ -103,7 +103,7 @@ export interface ITldParser {
      */
     getParsedAllUserDomainsUnwrapped(
         userAccount: PublicKey | string,
-    ): Promise<NameAccountAndDomain[]> 
+    ): Promise<NameAccountAndDomain[]>;
 
     /**
      * retrieves all parsed domains and name accounts including NFTs for user.
@@ -114,5 +114,5 @@ export interface ITldParser {
      */
     getParsedAllUserDomains(
         userAccount: PublicKey | string,
-    ): Promise<NameAccountAndDomain[]> 
+    ): Promise<NameAccountAndDomain[]>;
 }
