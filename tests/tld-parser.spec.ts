@@ -2,7 +2,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 
 import { MainDomain, MainDomainArgs, NameRecordHeader, Record, TldParser, getDomainKey } from '../src';
 
-const RPC_URL = 'https://mainnet.helius-rpc.com/?api-key=790b8481-a190-48ed-9ad5-39c36acd92eb';
+const RPC_URL = '';
 const connection = new Connection(RPC_URL);
 const owner = new PublicKey(
     '2EGGxj2qbNAJNgLCPKca8sxZYetyTjnoRspTPjzN2D67',

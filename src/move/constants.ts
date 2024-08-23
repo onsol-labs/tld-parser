@@ -1,4 +1,4 @@
 export const APTOS_NODE_URL = 'https://fullnode.devnet.aptoslabs.com';
 export const APTOS_FAUCET_URL = 'https://faucet.devnet.aptoslabs.com';
 export const ALL_DOMAINS_CONTRACT_ADDRESS =
-    '0xd6909eec2e0b852a88f1efac0c3e439c5c96467df47166c800b7fc1d5d898079';
+    '0x8455edcedf9ed50d0e0655aaa42818c308ddb7e98d2a7d4cfb281725e5324aaa';

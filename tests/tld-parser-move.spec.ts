@@ -2,7 +2,7 @@ import { APTOS_NODE_URL, TldParser } from '../src';
 import { AptosSettings, Network } from '@aptos-labs/ts-sdk';
 
 const owner =
-    '0xcc6bf35bb2e91e5a23183c6de65b3d85dd551046c71bb9785c31eb6e0addf86e';
+    '0x3110e9c436fb710919109355b190321e3d4eccbe2c626ec61bb25fffa6e806b2';
 
 describe('tldParser MOVE tests', () => {
     it('should perform fetching of all user domains', async () => {
@@ -11,7 +11,7 @@ describe('tldParser MOVE tests', () => {
         };
         const parser = new TldParser(aptosSettings, 'move');
         const ownedDomainsReceived = await parser.getAllUserDomains(owner);
-        expect(ownedDomainsReceived).toHaveLength(6);
+        expect(ownedDomainsReceived).toHaveLength(2);
     });
 
     it('should perform fetching of all user domains from a specific domain', async () => {
@@ -21,9 +21,9 @@ describe('tldParser MOVE tests', () => {
         const parser = new TldParser(aptosSettings, 'move');
         const ownedDomainsReceived = await parser.getAllUserDomainsFromTld(
             owner,
-            'TEST',
+            '.test',
         );
-        expect(ownedDomainsReceived).toHaveLength(4);
+        expect(ownedDomainsReceived).toHaveLength(2);
     });
 
     it('should perform fetching of owner from domain.tld', async () => {
@@ -32,7 +32,7 @@ describe('tldParser MOVE tests', () => {
         };
         const parser = new TldParser(aptosSettings, 'move');
         const ownedDomainsReceived = await parser.getOwnerFromDomainTld(
-            'okok.TEST',
+            'supermiester.test',
         );
         expect(ownedDomainsReceived).toEqual([owner]);
     });
@@ -43,24 +43,24 @@ describe('tldParser MOVE tests', () => {
         };
         const parser = new TldParser(aptosSettings, 'move');
         const ownedDomainsReceived = await parser.getNameRecordFromDomainTld(
-            'okok.TEST',
+            'supermiester.test',
         );
         const expectedNameRecord = {
             burn_ref: {
                 inner: { vec: [] },
                 self: {
                     vec: [
-                        '0xc537c1768c1901f6ca4f50ea0e7ece2feddcd815e67cea11b70b647341c45a23',
+                        '0xaee5769354d29d9b042dc83948ed9acb6cfd297295b8e571ddca7a286a549174',
                     ],
                 },
             },
-            created_at: '1724333701',
-            domain_name: 'okok',
-            expires_at: '1724333701',
+            created_at: '1724414262',
+            domain_name: 'supermiester',
+            expires_at: '1755950262',
             main_domain_address: { vec: [] },
-            tld: 'TEST',
+            tld: '.test',
             transfer_ref: {
-                self: '0xc537c1768c1901f6ca4f50ea0e7ece2feddcd815e67cea11b70b647341c45a23',
+                self: '0xaee5769354d29d9b042dc83948ed9acb6cfd297295b8e571ddca7a286a549174',
             },
             transferrable: false,
         };
@@ -78,21 +78,21 @@ describe('tldParser MOVE tests', () => {
                 inner: { vec: [] },
                 self: {
                     vec: [
-                        '0x352664b87128bbef379041a37ccfffcea95bb6b30a960c6a8798ecfa918671d3',
+                        '0xce69c4a6e3c6d302e6c6ef4a66aa2f7fa68e617df44cce7bdf549df18141b138',
                     ],
                 },
             },
-            created_at: '1724333455',
-            domain_name: 'okok',
-            expires_at: '1755869455',
+            created_at: '1724414328',
+            domain_name: 'testing',
+            expires_at: '1755950328',
             main_domain_address: {
                 vec: [
-                    '0xcc6bf35bb2e91e5a23183c6de65b3d85dd551046c71bb9785c31eb6e0addf86e',
+                    '0x3110e9c436fb710919109355b190321e3d4eccbe2c626ec61bb25fffa6e806b2',
                 ],
             },
-            tld: 'BEAR',
+            tld: '.test',
             transfer_ref: {
-                self: '0x352664b87128bbef379041a37ccfffcea95bb6b30a960c6a8798ecfa918671d3',
+                self: '0xce69c4a6e3c6d302e6c6ef4a66aa2f7fa68e617df44cce7bdf549df18141b138',
             },
             transferrable: false,
         };

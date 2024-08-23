@@ -142,8 +142,8 @@ export class TldParserMove implements ITldParser {
     ): Promise<string | undefined> {
         const domainTldSplit = domainTld.split('.');
         const domain = domainTldSplit[0];
-        const tld = domainTldSplit[1];
-        // const tld = '.' + domainTldSplit[1];
+        // const tld = domainTldSplit[1];
+        const tld = '.' + domainTldSplit[1];
         const address: any = await this.connection.view({
             payload: {
                 function: `${ALL_DOMAINS_CONTRACT_ADDRESS}::tld_manager::get_owner_from_domain`,
@@ -163,8 +163,8 @@ export class TldParserMove implements ITldParser {
     ): Promise<NameRecord | undefined> {
         const domainTldSplit = domainTld.split('.');
         const domain = domainTldSplit[0];
-        // const tld = '.' + domainTldSplit[1];
-        const tld = domainTldSplit[1];
+        const tld = '.' + domainTldSplit[1];
+        // const tld = domainTldSplit[1];
         const owner = await this.getOwnerFromDomainTld(domainTld);
         const tokens = await this.getAllUserDomainsFromTld(owner[0], tld);
         const name_record: NameRecord = tokens.find(
