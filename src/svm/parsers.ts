@@ -28,8 +28,9 @@ export class TldParserSvm implements ITldParser {
     constructor(connection: Connection | AptosSettings) {
         if (connection instanceof Connection) {
             this.connection = connection;
+        } else {
+            throw new Error('Method not implemented.');
         }
-        throw new Error('Method not implemented.');
     }
 
     /**
