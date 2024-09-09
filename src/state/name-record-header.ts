@@ -6,6 +6,49 @@ import { BinaryReader, deserializeUnchecked, Schema } from 'borsh';
  * functionality for that data
  */
 export class NameRecordHeader {
+
+    // only for normal domains, tld name record might not be working.
+    static async create(
+        obj: {
+            parentName: Uint8Array;
+            owner: Uint8Array;
+            nclass: Uint8Array;
+            expiresAt: Uint8Array;
+            createdAt: Uint8Array;
+            nonTransferable: Uint8Array;
+        },
+        connection: Connection
+    ): Promise<NameRecordHeader> {
+        const instance = new NameRecordHeader(obj);
+        await instance.initializeParentNameRecordHeader(connection);
+        return instance;
+    }
+
+    async initializeParentNameRecordHeader(connection: Connection): Promise<void> {
+        const parentNameRecordHeader = await NameRecordHeader.fromAccountAddress(connection, this.parentName);
+        const gracePeriod = parentNameRecordHeader.expiresAt.getTime();
+                
+        if (gracePeriod) {      
+            // set as custom gracePeriod      
+            const currentTime = new Date().getTime();            
+
+            this.isValid = this.expiresAt.getTime() === 0 || 
+                           (this.expiresAt.getTime() + gracePeriod > currentTime);
+
+            if (!this.isValid) {
+                this.owner = undefined;
+            }
+        } else {
+            // normal logic
+            const gracePeriod = 50 * 24 * 60 * 60 * 1000; // 50 days in milliseconds
+            this.isValid = this.expiresAt.getTime() === 0 || 
+                           (this.expiresAt.getTime() + gracePeriod > new Date().getTime());
+            if (!this.isValid) {
+                this.owner = undefined;
+            }
+        }
+    }
+
     constructor(obj: {
         parentName: Uint8Array;
         owner: Uint8Array;
@@ -25,15 +68,9 @@ export class NameRecordHeader {
                 1000,
         );
         this.nonTransferable = obj.nonTransferable[0] !== 0;
-        // grace period  = 45 days * 24 hours * 60 minutes * 60 seconds * 1000 millie seconds = 3_888_000 seconds
-        const gracePeriod = 45 * 24 * 60 * 60 * 1000;
-        this.isValid =
-            new BinaryReader(Buffer.from(obj.expiresAt))
-                .readU64()
-                .toNumber() === 0
-                ? true
-                : this.expiresAt.getTime() + gracePeriod > new Date(Date.now()).getTime();
-        this.owner = this.isValid ? new PublicKey(obj.owner) : undefined;
+        
+        this.isValid = false; // We'll set this later
+        this.owner = new PublicKey(obj.owner); // We'll update this later if needed
     }
 
     parentName: PublicKey;
@@ -46,7 +83,7 @@ export class NameRecordHeader {
     data: Buffer | undefined;
 
     static DISCRIMINATOR = [68, 72, 88, 44, 15, 167, 103, 243];
-    static HASH_PREFIX = 'ALT Name Service';
+    static HASH_PREFIX = 'ALT Name Service';    
 
     /**
      * NameRecordHeader Schema across all alt name service accounts
