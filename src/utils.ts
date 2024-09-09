@@ -107,6 +107,7 @@ export async function findOwnedNameAccountsForUser(
             memcmp: {
                 offset: 40,
                 bytes: userAccount.toBase58(),
+                encoding: 'base58',
             },
         },
     ];
@@ -116,13 +117,15 @@ export async function findOwnedNameAccountsForUser(
             memcmp: {
                 offset: 8,
                 bytes: parentAccount.toBase58(),
+                encoding: 'base58',
             },
         });
     }
 
     const accounts = await connection.getProgramAccounts(ANS_PROGRAM_ID, {
-        filters: filters,
+        filters: filters
     });
+    
     return accounts.map((a: any) => a.pubkey);
 }
 
@@ -150,6 +153,7 @@ export async function getAllTld(connection: Connection): Promise<
             memcmp: {
                 offset: 0,
                 bytes: tldHouseDiscriminator,
+                encoding: 'binary',
             },
         },
     ];
@@ -210,6 +214,7 @@ export async function findAllDomainsForTld(
             memcmp: {
                 offset: 8,
                 bytes: parentAccount.toBase58(),
+                encoding: 'base58',
             },
         },
     ];
