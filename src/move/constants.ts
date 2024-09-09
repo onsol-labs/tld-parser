@@ -1,4 +1,3 @@
-export const APTOS_NODE_URL = 'https://fullnode.devnet.aptoslabs.com';
-export const APTOS_FAUCET_URL = 'https://faucet.devnet.aptoslabs.com';
+export const APTOS_TESTNET_SUZUKA_NODE_URL = 'https://aptos.testnet.suzuka.movementlabs.xyz/v1';
 export const ALL_DOMAINS_CONTRACT_ADDRESS =
-    '0x8455edcedf9ed50d0e0655aaa42818c308ddb7e98d2a7d4cfb281725e5324aaa';
+    '0x82d5cb31aaac1c96eacaf4d7da14e9f3f141f0d198d96b0e060901630fb3e117';

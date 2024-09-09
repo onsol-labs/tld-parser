@@ -6,7 +6,7 @@ import { Connection } from '@solana/web3.js';
 import { NameRecord } from './types/NameRecordHeader';
 
 export class TldParserMove implements ITldParser {
-    private creatorAddress: string = '';
+    private creatorAddress: string = '0xb33c3c0d0ba5af1830f6154cc07c46682ecc784ad3ce0ff08c9beb7a08f20d65';
     private tlds: any[] = [];
     connection: Aptos;
 
@@ -14,22 +14,8 @@ export class TldParserMove implements ITldParser {
         if (!(settings instanceof Connection)) {
             const aptosConfig = new AptosConfig(settings);
             this.connection = new Aptos(aptosConfig);
-            this.initialize();
         } else {
             throw new Error('Method not implemented.');
-        }
-    }
-
-    // Initialize the necessary resources
-    async initialize() {
-        try {
-            const createrAddr = await this.connection.getAccountResource({
-                accountAddress: ALL_DOMAINS_CONTRACT_ADDRESS,
-                resourceType: `${ALL_DOMAINS_CONTRACT_ADDRESS}::name_record::ResAddr`,
-            });
-            this.creatorAddress = createrAddr.res_addr;
-        } catch (e) {
-            console.error('Failed to initialize TldParser:', e);
         }
     }
 
@@ -52,6 +38,7 @@ export class TldParserMove implements ITldParser {
                             collectionName: tld_manager.name_vec[counter - 1],
                         },
                     );
+                console.log(collection);
                 tlds.push({
                     address: collection.collection_id,
                     name: collection.collection_name,
@@ -107,10 +94,6 @@ export class TldParserMove implements ITldParser {
         userAccount: string,
         tld: string,
     ): Promise<NameRecord[]> {
-        // Ensure the class is initialized
-        if (!this.creatorAddress) {
-            await this.initialize();
-        }
         await this.updateTlds();
         const collection = this.tlds.find(e => e.name == tld);
         // Get the Domains
