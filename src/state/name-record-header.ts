@@ -17,16 +17,20 @@ export class NameRecordHeader {
             createdAt: Uint8Array;
             nonTransferable: Uint8Array;
         },
-        connection: Connection
+        connection: Connection,
+        parentNameRecord?: NameRecordHeader
     ): Promise<NameRecordHeader> {
         const instance = new NameRecordHeader(obj);
-        await instance.initializeParentNameRecordHeader(connection);
+        if(!parentNameRecord)
+            await instance.initializeParentNameRecordHeader(connection);
+        else {
+            instance.updateGracePeriod(parentNameRecord);
+        }
         return instance;
     }
 
-    async initializeParentNameRecordHeader(connection: Connection): Promise<void> {
-        const parentNameRecordHeader = await NameRecordHeader.fromAccountAddress(connection, this.parentName);
-        const gracePeriod = parentNameRecordHeader.expiresAt.getTime();
+    updateGracePeriod(parentNameRecord: NameRecordHeader): void {
+        const gracePeriod = parentNameRecord.expiresAt.getTime();
                 
         if (gracePeriod) {      
             // set as custom gracePeriod      
@@ -47,6 +51,11 @@ export class NameRecordHeader {
                 this.owner = undefined;
             }
         }
+    }
+
+    async initializeParentNameRecordHeader(connection: Connection): Promise<void> {
+        const parentNameRecordHeader = await NameRecordHeader.fromAccountAddress(connection, this.parentName);
+        this.updateGracePeriod(parentNameRecordHeader);
     }
 
     constructor(obj: {
@@ -138,6 +147,8 @@ export class NameRecordHeader {
         );
 
         res.data = nameAccount.data?.subarray(this.byteSize);
+
+        await res.initializeParentNameRecordHeader(connection);
 
         return res;
     }
