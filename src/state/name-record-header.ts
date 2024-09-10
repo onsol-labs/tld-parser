@@ -1,63 +1,12 @@
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
 import { BinaryReader, deserializeUnchecked, Schema } from 'borsh';
+import { ROOT_ANS_PUBLIC_KEY } from '../constants';
 
 /**
  * Holds the data for the {@link NameRecordHeader} Account and provides de/serialization
  * functionality for that data
  */
 export class NameRecordHeader {
-
-    // only for normal domains, tld name record might not be working.
-    static async create(
-        obj: {
-            parentName: Uint8Array;
-            owner: Uint8Array;
-            nclass: Uint8Array;
-            expiresAt: Uint8Array;
-            createdAt: Uint8Array;
-            nonTransferable: Uint8Array;
-        },
-        connection: Connection,
-        parentNameRecord?: NameRecordHeader
-    ): Promise<NameRecordHeader> {
-        const instance = new NameRecordHeader(obj);
-        if(!parentNameRecord)
-            await instance.initializeParentNameRecordHeader(connection);
-        else {
-            instance.updateGracePeriod(parentNameRecord);
-        }
-        return instance;
-    }
-
-    updateGracePeriod(parentNameRecord: NameRecordHeader): void {
-        const gracePeriod = parentNameRecord.expiresAt.getTime();
-                
-        if (gracePeriod) {      
-            // set as custom gracePeriod      
-            const currentTime = new Date().getTime();            
-
-            this.isValid = this.expiresAt.getTime() === 0 || 
-                           (this.expiresAt.getTime() + gracePeriod > currentTime);
-
-            if (!this.isValid) {
-                this.owner = undefined;
-            }
-        } else {
-            // normal logic
-            const gracePeriod = 50 * 24 * 60 * 60 * 1000; // 50 days in milliseconds
-            this.isValid = this.expiresAt.getTime() === 0 || 
-                           (this.expiresAt.getTime() + gracePeriod > new Date().getTime());
-            if (!this.isValid) {
-                this.owner = undefined;
-            }
-        }
-    }
-
-    async initializeParentNameRecordHeader(connection: Connection): Promise<void> {
-        const parentNameRecordHeader = await NameRecordHeader.fromAccountAddress(connection, this.parentName);
-        this.updateGracePeriod(parentNameRecordHeader);
-    }
-
     constructor(obj: {
         parentName: Uint8Array;
         owner: Uint8Array;
@@ -77,7 +26,7 @@ export class NameRecordHeader {
                 1000,
         );
         this.nonTransferable = obj.nonTransferable[0] !== 0;
-        
+
         this.isValid = false; // We'll set this later
         this.owner = new PublicKey(obj.owner); // We'll update this later if needed
     }
@@ -92,7 +41,7 @@ export class NameRecordHeader {
     data: Buffer | undefined;
 
     static DISCRIMINATOR = [68, 72, 88, 44, 15, 167, 103, 243];
-    static HASH_PREFIX = 'ALT Name Service';    
+    static HASH_PREFIX = 'ALT Name Service';
 
     /**
      * NameRecordHeader Schema across all alt name service accounts
@@ -124,6 +73,56 @@ export class NameRecordHeader {
         return 8 + 32 + 32 + 32 + 8 + 8 + 1 + 79;
     }
 
+    // only for normal domains, tld name record might not be working.
+    static async create(
+        obj: {
+            parentName: Uint8Array;
+            owner: Uint8Array;
+            nclass: Uint8Array;
+            expiresAt: Uint8Array;
+            createdAt: Uint8Array;
+            nonTransferable: Uint8Array;
+        },
+        connection: Connection,
+        parentNameRecord?: NameRecordHeader,
+    ): Promise<NameRecordHeader> {
+        const instance = new NameRecordHeader(obj);
+        if (!parentNameRecord)
+            await instance.initializeParentNameRecordHeader(connection);
+        else {
+            instance.updateGracePeriod(parentNameRecord);
+        }
+        return instance;
+    }
+
+    updateGracePeriod(parentNameRecord: NameRecordHeader): void {
+        const currentTime = Date.now();
+        const defaultGracePeriod = 50 * 24 * 60 * 60 * 1000; // 50 days in milliseconds
+        const gracePeriod = parentNameRecord.expiresAt.getTime() || defaultGracePeriod;
+    
+        this.isValid = this.expiresAt.getTime() === 0 || 
+                       this.expiresAt.getTime() + gracePeriod > currentTime;
+    
+        if (!this.isValid) {
+            this.owner = undefined;
+        }
+    }
+
+    async initializeParentNameRecordHeader(
+        connection: Connection,
+    ): Promise<void> {
+        if (this.parentName.toString() === PublicKey.default.toString()) {
+            this.isValid = true;
+            return;
+        }
+        const parentNameRecordHeader =
+            await NameRecordHeader.fromAccountAddress(
+                connection,
+                this.parentName,
+            );
+        this.updateGracePeriod(parentNameRecordHeader);
+    }
+
     /**
      * Retrieves the account info from the provided address and deserializes
      * the {@link NameRecordHeader} from its data.
@@ -147,8 +146,11 @@ export class NameRecordHeader {
         );
 
         res.data = nameAccount.data?.subarray(this.byteSize);
-
-        await res.initializeParentNameRecordHeader(connection);
+        if (res.parentName.toString() !== ROOT_ANS_PUBLIC_KEY.toString()) {
+            await res.initializeParentNameRecordHeader(connection);
+        } else {
+            res.isValid = true;
+        }            
 
         return res;
     }

@@ -4,7 +4,7 @@ import { MainDomain, MainDomainArgs } from '../src/state/main-domain';
 import { Record } from '../src/types/records';
 import { NameRecordHeader, TldParser, getDomainKey } from '../src';
 
-const RPC_URL = 'https://mainnet.helius-rpc.com/?api-key=790b8481-a190-48ed-9ad5-39c36acd92eb';
+const RPC_URL = '';
 const connection = new Connection(RPC_URL);
 const owner = new PublicKey(
     '2EGGxj2qbNAJNgLCPKca8sxZYetyTjnoRspTPjzN2D67',
@@ -16,7 +16,7 @@ const parentAccountOwner = new PublicKey('ANgPRMKQHgH5Snx2K3VHCvHqFmrABcjTZUrqZB
 describe('tldParser tests', () => {
     // it('should perform fetching of a pending expiry domain', async () => {
     //     const parser = new TldParser(connection);
-    //     const domanTld = 'canwenot.abc';
+    //     const domanTld = 'miester.abc';
     //     const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
     //     expect(ownerRecieved).toStrictEqual(owner);
     // });
@@ -38,14 +38,14 @@ describe('tldParser tests', () => {
     // it('should perform retrieval of all user domains', async () => {
     //     const parser = new TldParser(connection);
     //     const allDomainsReceived = await parser.getAllUserDomains(owner);
-    //     expect(allDomainsReceived).toHaveLength(26);
+    //     expect(allDomainsReceived).toHaveLength(54);
     // });
 
     // it('should perform retrieval of all user domains for poor tld', async () => {
     //     const parser = new TldParser(connection);
     //     const tld = 'poor';
     //     const ownedDomainsReceived = await parser.getAllUserDomainsFromTld(owner, tld);
-    //     expect(ownedDomainsReceived).toHaveLength(3);
+    //     expect(ownedDomainsReceived).toHaveLength(1);
     // });
 
     // it('should perform lookup of owner of the domainTld', async () => {
@@ -81,11 +81,11 @@ describe('tldParser tests', () => {
     //     expect(tld).toStrictEqual(expect.stringContaining('poor'));
     // });
 
-    // it('should perform reverse lookup of domain from nameAccount and parent name owner', async () => {
-    //     const parser = new TldParser(connection);
-    //     const domain = await parser.reverseLookupNameAccount(nameAccount, parentAccountOwner);
-    //     expect(domain).toStrictEqual(expect.stringContaining('miester'));
-    // });
+    it('should perform reverse lookup of domain from nameAccount and parent name owner', async () => {
+        const parser = new TldParser(connection);
+        const domain = await parser.reverseLookupNameAccount(nameAccount, parentAccountOwner);
+        expect(domain).toStrictEqual(expect.stringContaining('miester'));
+    });
 
     // it('should perform fetching of dns record of domain', async () => {
     //     let domain = 'miester.poor';
