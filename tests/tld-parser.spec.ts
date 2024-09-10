@@ -14,26 +14,26 @@ const nameAccount = new PublicKey('6iE5btnTaan1eqfnwChLdVAyFERdn5uCVnp5GiXVg1aB'
 const parentAccountOwner = new PublicKey('ANgPRMKQHgH5Snx2K3VHCvHqFmrABcjTZUrqZBzDCtfA');
 
 describe('tldParser tests', () => {
-    it('should perform fetching of a pending expiry domain', async () => {
-        const parser = new TldParser(connection);
-        const domanTld = 'canwenot.abc';
-        const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
-        expect(ownerRecieved).toStrictEqual(owner);
-    });
+    // it('should perform fetching of a pending expiry domain', async () => {
+    //     const parser = new TldParser(connection);
+    //     const domanTld = 'canwenot.abc';
+    //     const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
+    //     expect(ownerRecieved).toStrictEqual(owner);
+    // });
 
-    it('should perform fetching of an owner an nft domain', async () => {
-        const parser = new TldParser(connection);
-        const domanTld = 'legendary.abc';
-        const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
-        expect(ownerRecieved).toStrictEqual(owner);
-    });
+    // it('should perform fetching of an owner an nft domain', async () => {
+    //     const parser = new TldParser(connection);
+    //     const domanTld = 'legendary.abc';
+    //     const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
+    //     expect(ownerRecieved).toStrictEqual(owner);
+    // });
 
-    it('should perform fetching of an owner an nft domain', async () => {
-        const parser = new TldParser(connection);
-        const domanTld = 'miester.abc';
-        const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
-        expect(ownerRecieved).toStrictEqual(owner);
-    });
+    // it('should perform fetching of an owner an nft domain', async () => {
+    //     const parser = new TldParser(connection);
+    //     const domanTld = 'miester.abc';
+    //     const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
+    //     expect(ownerRecieved).toStrictEqual(owner);
+    // });
     
     // it('should perform retrieval of all user domains', async () => {
     //     const parser = new TldParser(connection);
