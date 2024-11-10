@@ -1,12 +1,14 @@
-import { PublicKey, Connection } from '@solana/web3.js';
+import { Aptos, AptosSettings } from '@aptos-labs/ts-sdk';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { JsonRpcApiProvider, Network } from 'ethers';
+import { TldParserEvm } from './evm/parsers';
+import { NameRecord } from './move';
+import { TldParserMove } from './move/parsers';
+import { ITldParser } from './parsers.interface';
 import { NameAccountAndDomain } from './svm/name-record-handler';
 import { TldParserSvm } from './svm/parsers';
 import { MainDomain } from './svm/state/main-domain';
 import { NameRecordHeader } from './svm/state/name-record-header';
-import { ITldParser } from './parsers.interface';
-import { Aptos, AptosSettings } from '@aptos-labs/ts-sdk';
-import { TldParserMove } from './move/parsers';
-import { NameRecord } from './move';
 
 /**
  * TldParser class
@@ -18,16 +20,16 @@ import { NameRecord } from './move';
  * The TldParser for multiple chains will be implemented, and Solana integration will remain unchanged without any breaking modifications.
  */
 export class TldParser implements ITldParser {
-    connection: Connection | Aptos;
+    connection: Connection | Aptos | JsonRpcApiProvider;
 
-    constructor(connection: Connection | AptosSettings, chain?: string) {
+    constructor(connection: Connection | AptosSettings | Network, chain?: string) {
         if (new.target === TldParser) {
             return TldParser.createParser(connection, chain);
         }
     }
 
     private static createParser(
-        connection: Connection | AptosSettings,
+        connection: Connection | AptosSettings | Network,
         chain?: string,
     ): ITldParser {
         switch (chain?.toLowerCase()) {
@@ -36,9 +38,12 @@ export class TldParser implements ITldParser {
             case 'termina':
             case 'solana':
             case undefined:
-                return new TldParserSvm(connection);
+                return new TldParserSvm(connection as Connection);
             case 'move':
-                return new TldParserMove(connection);
+                return new TldParserMove(connection as AptosSettings);
+            case 'monad':
+            case 'amoy':
+                return new TldParserEvm(connection as Network);
             default:
                 throw new Error(`Unsupported TldParser chain: ${chain}`);
         }
