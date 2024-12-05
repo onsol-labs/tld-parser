@@ -15,6 +15,7 @@ import { registrarFetchers } from './fetchers/registrar.fetchers';
 import { registryFetchers } from './fetchers/registry.fetchers';
 import { rootFetchers, TLD } from './fetchers/root.fetchers';
 import { Address, isValidAddress } from './types/Address';
+import { AddressAndDomain } from './types/AddressAndDomain';
 import { EvmChainData } from './types/EvmChainData';
 import { configOfEvmChainId, labelhashFromLabel } from './utils';
 
@@ -223,22 +224,45 @@ export class TldParserEvm implements ITldParser {
         throw new Error('Method not implemented.');
     }
 
-    getParsedAllUserDomainsFromTld(
+    async getParsedAllUserDomainsFromTld(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<NameAccountAndDomain[]> {
+    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         /**
          * TODO
          * - call `getUserNfts` for the registrar of the tld
          * - get the associated domain for each nft id
          * - parse all the data to the required return format
          */
-        throw new Error('Method not implemented.');
+        const isValidAddr = isValidAddress(userAccount as string);
+        if (!isValidAddr) {
+            throw new Error(`Invalid address for EVM chain: ${userAccount}`);
+        }
+
+        const tldLabel = labelhashFromLabel(tld);
+
+        const tldData = await rootFetchers.getTldData({
+            config: this.config,
+            provider: this.connection,
+            tldLabel,
+        });
+
+        const domains = await this.getUserNftFromTld({
+            userAccount: userAccount as string,
+            tld: tldData,
+        });
+
+        return domains.map(domain => {
+            return <AddressAndDomain>{
+                address: domain.nft.name,
+                domain: domain.tld.tld,
+            };
+        });
     }
 
     getParsedAllUserDomainsUnwrapped(
         userAccount: PublicKey | string,
-    ): Promise<NameAccountAndDomain[]> {
+    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         /**
          * TODO
          * ??? Unwrapped ???
@@ -250,17 +274,36 @@ export class TldParserEvm implements ITldParser {
         throw new Error('Method not implemented.');
     }
 
-    getParsedAllUserDomains(
+    async getParsedAllUserDomains(
         userAccount: PublicKey | string,
-    ): Promise<NameAccountAndDomain[]> {
-        /**
-         * TODO
-         * - get all the registrars for the registry (root contract)
-         * - call `getUserNfts` for each registrar to get the owned nft id
-         * - get the associated domain for each nft id
-         * - parse all the data to the required return format
-         */
-        throw new Error('Method not implemented.');
+    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
+        const isValidAddr = isValidAddress(userAccount as string);
+        if (!isValidAddr) {
+            throw new Error(`Invalid address for EVM chain: ${userAccount}`);
+        }
+
+        const tlds = await rootFetchers.getTlds({
+            config: this.config,
+            provider: this.connection,
+        });
+
+        const domains = (
+            await Promise.all(
+                tlds.map(tld => {
+                    return this.getUserNftFromTld({
+                        userAccount: userAccount as string,
+                        tld,
+                    });
+                }),
+            )
+        ).flat();
+
+        return domains.map(domain => {
+            return <AddressAndDomain>{
+                address: domain.nft.name,
+                domain: domain.tld.tld,
+            };
+        });
     }
 
     private async getUserNftFromTld(data: { userAccount: string; tld: TLD }) {

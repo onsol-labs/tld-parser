@@ -2,6 +2,7 @@ import { Aptos } from '@aptos-labs/ts-sdk';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { JsonRpcApiProvider } from 'ethers';
 import { NameRecord } from 'move';
+import { AddressAndDomain } from './evm/types/AddressAndDomain';
 import { NameAccountAndDomain } from './svm/name-record-handler';
 import { MainDomain } from './svm/state/main-domain';
 import { NameRecordHeader } from './svm/state/name-record-header';
@@ -81,7 +82,7 @@ export interface ITldParser {
     getParsedAllUserDomainsFromTldUnwrapped(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<NameAccountAndDomain[]>;
+    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]>;
 
     /**
      * retrieves all parsed domains and name accounts including NFTs in an array for any user in a specific TLD.
@@ -93,7 +94,7 @@ export interface ITldParser {
     getParsedAllUserDomainsFromTld(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<NameAccountAndDomain[]>;
+    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]>;
 
     /**
      * retrieves all parsed domains and name accounts for user.
@@ -104,7 +105,7 @@ export interface ITldParser {
      */
     getParsedAllUserDomainsUnwrapped(
         userAccount: PublicKey | string,
-    ): Promise<NameAccountAndDomain[]>;
+    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]>;
 
     /**
      * retrieves all parsed domains and name accounts including NFTs for user.
@@ -115,5 +116,5 @@ export interface ITldParser {
      */
     getParsedAllUserDomains(
         userAccount: PublicKey | string,
-    ): Promise<NameAccountAndDomain[]>;
+    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]>;
 }

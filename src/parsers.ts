@@ -2,6 +2,7 @@ import { Aptos, AptosSettings } from '@aptos-labs/ts-sdk';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { JsonRpcApiProvider, Network } from 'ethers';
 import { TldParserEvm } from './evm/parsers';
+import { AddressAndDomain } from './evm/types/AddressAndDomain';
 import { NameRecord } from './move';
 import { TldParserMove } from './move/parsers';
 import { ITldParser } from './parsers.interface';
@@ -22,7 +23,10 @@ import { NameRecordHeader } from './svm/state/name-record-header';
 export class TldParser implements ITldParser {
     connection: Connection | Aptos | JsonRpcApiProvider;
 
-    constructor(connection: Connection | AptosSettings | Network, chain?: string) {
+    constructor(
+        connection: Connection | AptosSettings | Network,
+        chain?: string,
+    ) {
         if (new.target === TldParser) {
             return TldParser.createParser(connection, chain);
         }
@@ -140,7 +144,7 @@ export class TldParser implements ITldParser {
     async getParsedAllUserDomainsFromTldUnwrapped(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<NameAccountAndDomain[]> {
+    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
     }
 
@@ -154,7 +158,7 @@ export class TldParser implements ITldParser {
     async getParsedAllUserDomainsFromTld(
         userAccount: PublicKey | string,
         tld: string,
-    ): Promise<NameAccountAndDomain[]> {
+    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
     }
 
@@ -166,7 +170,7 @@ export class TldParser implements ITldParser {
      */
     async getParsedAllUserDomainsUnwrapped(
         userAccount: PublicKey | string,
-    ): Promise<NameAccountAndDomain[]> {
+    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
     }
 
@@ -178,7 +182,7 @@ export class TldParser implements ITldParser {
      */
     async getParsedAllUserDomains(
         userAccount: PublicKey | string,
-    ): Promise<NameAccountAndDomain[]> {
+    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
     }
 }
