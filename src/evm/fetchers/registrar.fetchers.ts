@@ -4,157 +4,33 @@ import {
     BrowserProvider,
     Contract,
     Eip1193Provider,
+    ensNormalize,
     Provider,
     Typed,
 } from 'ethers';
-import { z } from 'zod';
-import { REGISTRAR_ABI } from '../abis/registrar.abi';
-import { Address, AddressSchema } from '../types/Address';
-import { EvmChainData } from '../types/EvmChainData';
 
-const NameDataSchema = z.object({
-    name: z.string(),
-    expiry: z.number(),
-    frozen: z.boolean(),
-});
-type NameData = z.infer<typeof NameDataSchema>;
+import { REGISTRAR_ABI } from '../abis/registrar.abi';
+import { Address } from '../types/Address';
+import { EvmChainData } from '../types/EvmChainData';
+import { labelhashFromLabel } from '../utils';
+
+type NameData = {
+    name: string;
+    expiry: number;
+    frozen: boolean;
+};
 export type UserNft = NameData & { id: bigint; url: string };
 
-const ScDataSchema = z.object({
-    name: z.string(),
-    owner: AddressSchema,
-    tldNode: z.string(),
-    symbol: z.string(),
-    baseUrl: z.string(),
-    gracePeriod: z.number(),
-    tldFrozen: z.boolean(),
-    defaultTTL: z.number(),
-});
-type ScData = z.infer<typeof ScDataSchema>;
-
-async function getAdminList(params: {
-    config: EvmChainData;
-    provider: Provider;
-    registrarAddress: Address | undefined;
-}): Promise<Address[]> {
-    const { provider, config, registrarAddress } = params;
-
-    if (!provider) throw Error('No provider');
-    if (!config) throw Error('Not connected to SmartContract');
-    if (!registrarAddress) throw Error('No registrar address');
-
-    const contract = new Contract(registrarAddress, REGISTRAR_ABI, provider);
-
-    const admins = await contract.getAdmins();
-
-    return admins;
-}
-
-async function getSignerList(params: {
-    config: EvmChainData;
-    provider: Provider;
-    registrarAddress: Address | undefined;
-}): Promise<Address[]> {
-    const { provider, config, registrarAddress } = params;
-
-    if (!provider) throw Error('No provider');
-    if (!config) throw Error('Not connected to SmartContract');
-    if (!registrarAddress) throw Error('No registrar address');
-
-    const contract = new Contract(registrarAddress, REGISTRAR_ABI, provider);
-
-    const signers = await contract.getSigners();
-
-    return signers;
-}
-
-async function addAdmin(params: {
-    address: Address;
-    config: EvmChainData;
-    walletProvider: Eip1193Provider;
-    registrarAddress: Address | undefined;
-}): Promise<string> {
-    const { walletProvider, config, registrarAddress, address } = params;
-
-    if (!walletProvider) throw Error('User disconnected');
-    if (!config) throw Error('Not connected to SmartContract');
-    if (!registrarAddress) throw Error('No registrar address');
-
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const signer = await ethersProvider.getSigner();
-
-    const contract = new Contract(registrarAddress, REGISTRAR_ABI, signer);
-    const tx = await contract.addAdmin(address);
-    await tx.wait();
-
-    return tx.hash;
-}
-
-async function removeAdmin(params: {
-    address: Address;
-    config: EvmChainData;
-    walletProvider: Eip1193Provider;
-    registrarAddress: Address | undefined;
-}): Promise<string> {
-    const { walletProvider, config, address, registrarAddress } = params;
-
-    if (!walletProvider) throw Error('User disconnected');
-    if (!config) throw Error('Not connected to SmartContract');
-    if (!registrarAddress) throw Error('No registrar address');
-
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const signer = await ethersProvider.getSigner();
-
-    const contract = new Contract(registrarAddress, REGISTRAR_ABI, signer);
-    const tx = await contract.removeAdmin(address);
-    await tx.wait();
-
-    return tx.hash;
-}
-
-async function addSigner(params: {
-    address: Address;
-    config: EvmChainData;
-    walletProvider: Eip1193Provider;
-    registrarAddress: Address | undefined;
-}): Promise<string> {
-    const { walletProvider, config, registrarAddress, address } = params;
-
-    if (!walletProvider) throw Error('User disconnected');
-    if (!config) throw Error('Not connected to SmartContract');
-    if (!registrarAddress) throw Error('No registrar address');
-
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const signer = await ethersProvider.getSigner();
-
-    const contract = new Contract(registrarAddress, REGISTRAR_ABI, signer);
-    const tx = await contract.addSigner(address);
-    await tx.wait();
-
-    return tx.hash;
-}
-
-async function removeSigner(params: {
-    address: Address;
-    config: EvmChainData;
-    walletProvider: Eip1193Provider;
-    registrarAddress: Address | undefined;
-}): Promise<string> {
-    const { walletProvider, config, address, registrarAddress } = params;
-
-    if (!walletProvider) throw Error('User disconnected');
-    if (!config) throw Error('Not connected to SmartContract');
-    if (!registrarAddress) throw Error('No registrar address');
-
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const signer = await ethersProvider.getSigner();
-
-    const contract = new Contract(registrarAddress, REGISTRAR_ABI, signer);
-    const tx = await contract.removeSigner(address);
-    await tx.wait();
-
-    return tx.hash;
-}
+type ScData = {
+    name: string;
+    owner: Address;
+    tldNode: string;
+    symbol: string;
+    baseUrl: string;
+    gracePeriod: number;
+    tldFrozen: boolean;
+    defaultTTL: number;
+};
 
 async function getNameData(params: {
     name: string;
@@ -170,7 +46,7 @@ async function getNameData(params: {
     const contract = new Contract(registrarAddress, REGISTRAR_ABI, provider);
     const nameData = await contract.nameData(name);
 
-    return NameDataSchema.parse(nameData);
+    return nameData;
 }
 
 async function getScData(params: {
@@ -195,16 +71,16 @@ async function getScData(params: {
     const tldFrozen = (await contract.allFrozen()) as unknown as boolean;
     const defaultTTL = (await contract.defaultTTL()) as unknown as bigint;
 
-    return ScDataSchema.parse({
+    return {
         name,
-        owner,
+        owner: owner as Address,
         tldNode,
         symbol,
         baseUrl,
         gracePeriod: parseInt(gracePeriod.toString()),
         tldFrozen,
         defaultTTL: parseInt(defaultTTL.toString()),
-    });
+    };
 }
 
 async function getUsersNfts(params: {
@@ -246,6 +122,44 @@ async function getUsersNfts(params: {
     return nftData;
 }
 
+async function getUserNftData(params: {
+    config: EvmChainData;
+    provider: Provider;
+    registrarAddress: Address | undefined;
+    domain: string;
+}) {
+    const { config, provider, registrarAddress, domain } = params;
+    if (!provider) throw Error('No provider');
+    if (!config) throw Error('Not connected to SmartContract');
+    if (!registrarAddress) throw Error('No registrar address');
+
+    const contract = new Contract(registrarAddress, REGISTRAR_ABI, provider);
+
+    // Step 1 - convert full domain to only the name of the domain (e.g. domain.eth -> domain)
+    const normalized = ensNormalize(domain);
+    const label = normalized.split('.')[0];
+    const labelHash = labelhashFromLabel(label);
+
+    // Step 2 - convert node to tokenId
+    const tokenId = Typed.uint256(labelHash);
+
+    // Step 3 - get the token data
+    const tokenDataRaw = (await contract.nameData(tokenId)) as [
+        unknown,
+        unknown,
+        unknown,
+    ];
+    const tokenUrl = (await contract.tokenURI(tokenId)) as unknown as string;
+
+    return {
+        name: tokenDataRaw[0] as string,
+        expiry: BigInt(tokenDataRaw[1] as string),
+        frozen: tokenDataRaw[2] as boolean,
+        id: tokenId,
+        url: tokenUrl,
+    };
+}
+
 async function transferNft(params: {
     to: Address;
     tokenId: bigint;
@@ -263,11 +177,6 @@ async function transferNft(params: {
     const signer = await ethersProvider.getSigner();
     const from = await signer.getAddress();
 
-    console.log({
-        from,
-        to,
-        tokenId,
-    });
     const contract = new Contract(registrarAddress, REGISTRAR_ABI, signer);
     const tx = await contract.transferFrom(from, to, tokenId);
     await tx.wait();
@@ -298,15 +207,10 @@ async function burnNft(params: {
 }
 
 export const registrarFetchers = {
-    getAdminList,
-    getSignerList,
-    addAdmin,
-    removeAdmin,
-    addSigner,
-    removeSigner,
     getNameData,
     getScData,
     getUsersNfts,
+    getUserNftData,
     transferNft,
     burnNft,
 };

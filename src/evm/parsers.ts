@@ -1,14 +1,22 @@
 import { AptosSettings } from '@aptos-labs/ts-sdk';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { EnsPlugin, JsonRpcProvider, Network } from 'ethers';
-import { NameRecord } from 'move';
-import { MainDomain, NameAccountAndDomain, NameRecordHeader } from 'svm';
+import {
+    ensNormalize,
+    EnsPlugin,
+    JsonRpcProvider,
+    namehash,
+    Network,
+} from 'ethers';
+
+import { NameRecord } from '../move';
 import { ITldParser } from '../parsers.interface';
+import { MainDomain, NameAccountAndDomain, NameRecordHeader } from '../svm';
 import { registrarFetchers } from './fetchers/registrar.fetchers';
+import { registryFetchers } from './fetchers/registry.fetchers';
 import { rootFetchers, TLD } from './fetchers/root.fetchers';
-import { Address, AddressSchema } from './types/Address';
+import { Address, isValidAddress } from './types/Address';
 import { EvmChainData } from './types/EvmChainData';
-import { configOfEvmChainId } from './utils';
+import { configOfEvmChainId, labelhashFromLabel } from './utils';
 
 export class TldParserEvm implements ITldParser {
     connection: JsonRpcProvider;
@@ -34,18 +42,10 @@ export class TldParserEvm implements ITldParser {
     async getAllUserDomains(
         userAccount: PublicKey | string,
     ): Promise<NameRecord[]> {
-        const isValidAddress = await AddressSchema.safeParseAsync(
-            userAccount as string,
-        );
-        if (!isValidAddress.success) {
+        const isValidAddr = isValidAddress(userAccount as string);
+        if (!isValidAddr) {
             throw new Error(`Invalid address for EVM chain: ${userAccount}`);
         }
-        /**
-         * TODO
-         * - get all the registrars for the registry (root contract)
-         * - call `getUserNfts` for each registrar to get the owned nft id
-         * - get the associated domain for each nft id
-         */
 
         const tlds = await rootFetchers.getTlds({
             config: this.config,
@@ -75,38 +75,89 @@ export class TldParserEvm implements ITldParser {
         });
     }
 
-    getAllUserDomainsFromTld(
+    async getAllUserDomainsFromTld(
         userAccount: PublicKey | string,
         tld: string,
     ): Promise<PublicKey[] | NameRecord[]> {
-        /**
-         * TODO
-         * - call `getUserNfts` for the registrar of the tld
-         * - get the associated domain for each nft id
-         */
-        throw new Error('Method not implemented.');
+        const isValidAddr = isValidAddress(userAccount as string);
+        if (!isValidAddr) {
+            throw new Error(`Invalid address for EVM chain: ${userAccount}`);
+        }
+
+        const tldLabel = labelhashFromLabel(tld);
+
+        const tldData = await rootFetchers.getTldData({
+            config: this.config,
+            provider: this.connection,
+            tldLabel,
+        });
+
+        const domains = await this.getUserNftFromTld({
+            userAccount: userAccount as string,
+            tld: tldData,
+        });
+
+        return domains.map(domain => {
+            return <NameRecord>{
+                created_at: '0',
+                domain_name: domain.nft.name,
+                expires_at: domain.nft.expiry.toString(),
+                main_domain_address: '',
+                tld: domain.tld.tld,
+                transferrable: domain.nft.frozen,
+            };
+        });
     }
 
-    getOwnerFromDomainTld(
+    async getOwnerFromDomainTld(
         domainTld: string,
     ): Promise<PublicKey | undefined | string> {
-        /**
-         * TODO
-         * - call the registry to ask for the owner of the domain
-         */
-        throw new Error('Method not implemented.');
+        const normalized = ensNormalize(domainTld);
+        const node = namehash(normalized);
+        const owner = await registryFetchers.getDomainOwner({
+            config: this.config,
+            provider: this.connection,
+            registryAddress: this.config.registryContractAddress as Address,
+            node,
+        });
+
+        return owner;
     }
 
-    getNameRecordFromDomainTld(
+    async getNameRecordFromDomainTld(
         domainTld: string,
     ): Promise<NameRecordHeader | NameRecord | undefined> {
-        /**
-         * TODO
-         * Two options:
-         * - call the registry to get the record - not sure if this is currently public viewable data
-         * - call the registrar to get the NftData - `nameData` function
-         */
-        throw new Error('Method not implemented.');
+        const normalized = ensNormalize(domainTld);
+        const node = namehash(normalized);
+        const recordData = await registryFetchers.getRecordData({
+            config: this.config,
+            provider: this.connection,
+            registryAddress: this.config.registryContractAddress as Address,
+            node,
+        });
+
+        const tld = await this.getTldFromFullDomain(domainTld);
+        const tldData = await rootFetchers.getTldData({
+            config: this.config,
+            provider: this.connection,
+            tldLabel: labelhashFromLabel(tld),
+        });
+
+        const nftData = await registrarFetchers.getUserNftData({
+            config: this.config,
+            provider: this.connection,
+            registrarAddress: tldData.registrar as Address,
+            domain: domainTld,
+        });
+
+        return <NameRecord>{
+            created_at: (nftData.expiry - recordData.ttl).toString(),
+            domain_name: nftData.name,
+            expires_at: nftData.expiry.toString(),
+            main_domain_address: recordData.owner,
+            tld: `.${tldData.name}`,
+            transferrable: !nftData.frozen,
+        };
     }
 
     getTldFromParentAccount(
@@ -128,14 +179,34 @@ export class TldParserEvm implements ITldParser {
         throw new Error('Method not implemented.');
     }
 
-    getMainDomain(
+    async getMainDomain(
         userAddress: PublicKey | string,
     ): Promise<MainDomain | NameRecord> {
-        /**
-         * TODO
-         * - reverse lookup the user address and retrieve additional data (see return types)
-         */
-        throw new Error('Method not implemented.');
+        const isValidAddr = isValidAddress(userAddress as string);
+        if (!isValidAddr) {
+            throw new Error(`Invalid address for EVM chain: ${userAddress}`);
+        }
+
+        const domain = await this.connection.lookupAddress(
+            userAddress as string,
+        );
+        if (!domain) {
+            throw new Error(`No domain found for address: ${userAddress}`);
+        }
+
+        const forwardResolver = await this.connection.getResolver(domain);
+
+        if (!forwardResolver) {
+            throw new Error(`No resolver found for domain: ${domain}`);
+        }
+
+        const verifiedAddress = await forwardResolver.getAddress();
+
+        if (!verifiedAddress) {
+            throw new Error(`No verified address found for domain: ${domain}`);
+        }
+
+        return (await this.getNameRecordFromDomainTld(domain)) as NameRecord;
     }
 
     getParsedAllUserDomainsFromTldUnwrapped(
@@ -219,5 +290,12 @@ export class TldParserEvm implements ITldParser {
         });
 
         return data;
+    }
+
+    private async getTldFromFullDomain(domain: string) {
+        // Considering there can be unlimited subdomains, the last part after a dot is the tld
+        const parts = domain.split('.');
+        const tld = parts[parts.length - 1];
+        return tld;
     }
 }
