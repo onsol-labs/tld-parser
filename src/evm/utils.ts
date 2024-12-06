@@ -1,6 +1,21 @@
-import { ensNormalize, keccak256, namehash, toUtf8Bytes } from 'ethers';
+import {
+    ensNormalize,
+    keccak256,
+    namehash,
+    Network,
+    toUtf8Bytes,
+} from 'ethers';
 import { EVM_CHAIN_CONFIGS } from './constants';
 import { EvmChainData } from './types/EvmChainData';
+
+export class NetworkWithRpc extends Network {
+    public rpcUrl: string;
+
+    constructor(name: string, chainId: number, rpcUrl: string) {
+        super(name, chainId);
+        this.rpcUrl = rpcUrl;
+    }
+}
 
 export function getValues<T extends Record<string, any>>(obj: T): [T[keyof T]] {
     return Object.values(obj) as [(typeof obj)[keyof T]];

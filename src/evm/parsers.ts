@@ -1,12 +1,6 @@
 import { AptosSettings } from '@aptos-labs/ts-sdk';
 import { Connection, PublicKey } from '@solana/web3.js';
-import {
-    ensNormalize,
-    EnsPlugin,
-    JsonRpcProvider,
-    namehash,
-    Network,
-} from 'ethers';
+import { ensNormalize, EnsPlugin, JsonRpcProvider, namehash } from 'ethers';
 
 import { NameRecord } from '../move';
 import { ITldParser } from '../parsers.interface';
@@ -17,14 +11,18 @@ import { rootFetchers, TLD } from './fetchers/root.fetchers';
 import { Address, isValidAddress } from './types/Address';
 import { AddressAndDomain } from './types/AddressAndDomain';
 import { EvmChainData } from './types/EvmChainData';
-import { configOfEvmChainId, labelhashFromLabel } from './utils';
+import {
+    configOfEvmChainId,
+    labelhashFromLabel,
+    NetworkWithRpc,
+} from './utils';
 
 export class TldParserEvm implements ITldParser {
     connection: JsonRpcProvider;
     private config: EvmChainData;
 
-    constructor(settings?: Connection | AptosSettings | Network) {
-        if (settings instanceof Network) {
+    constructor(settings?: Connection | AptosSettings | NetworkWithRpc) {
+        if (settings instanceof NetworkWithRpc) {
             const chainId = parseInt(settings.chainId.toString());
             const config = configOfEvmChainId(chainId);
             this.config = config;
@@ -32,7 +30,7 @@ export class TldParserEvm implements ITldParser {
             settings.attachPlugin(
                 new EnsPlugin(config.registryContractAddress, chainId),
             );
-            this.connection = new JsonRpcProvider(config.rpcUrl, settings, {
+            this.connection = new JsonRpcProvider(settings.rpcUrl, settings, {
                 staticNetwork: true,
             });
         } else {

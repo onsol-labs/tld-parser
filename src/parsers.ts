@@ -1,8 +1,9 @@
 import { Aptos, AptosSettings } from '@aptos-labs/ts-sdk';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { JsonRpcApiProvider, Network } from 'ethers';
+import { JsonRpcApiProvider } from 'ethers';
 import { TldParserEvm } from './evm/parsers';
 import { AddressAndDomain } from './evm/types/AddressAndDomain';
+import { NetworkWithRpc } from './evm/utils';
 import { NameRecord } from './move';
 import { TldParserMove } from './move/parsers';
 import { ITldParser } from './parsers.interface';
@@ -24,7 +25,7 @@ export class TldParser implements ITldParser {
     connection: Connection | Aptos | JsonRpcApiProvider;
 
     constructor(
-        connection: Connection | AptosSettings | Network,
+        connection: Connection | AptosSettings | NetworkWithRpc,
         chain?: string,
     ) {
         if (new.target === TldParser) {
@@ -33,7 +34,7 @@ export class TldParser implements ITldParser {
     }
 
     private static createParser(
-        connection: Connection | AptosSettings | Network,
+        connection: Connection | AptosSettings | NetworkWithRpc,
         chain?: string,
     ): ITldParser {
         switch (chain?.toLowerCase()) {
@@ -47,7 +48,7 @@ export class TldParser implements ITldParser {
                 return new TldParserMove(connection as AptosSettings);
             case 'monad':
             case 'amoy':
-                return new TldParserEvm(connection as Network);
+                return new TldParserEvm(connection as NetworkWithRpc);
             default:
                 throw new Error(`Unsupported TldParser chain: ${chain}`);
         }

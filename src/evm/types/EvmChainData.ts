@@ -12,7 +12,6 @@ export type EvmChainType = EnumValues<typeof EVM_CHAINS>;
 
 export type EvmChainData = {
     chainId: number;
-    rpcUrl: string;
     rootContractAddress: string;
     registryContractAddress: string;
 };

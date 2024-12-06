@@ -1,8 +1,14 @@
-import { getAddress, Network } from 'ethers';
+import { getAddress } from 'ethers';
 import { NameRecord, TldParser } from '../src';
-import { labelhashFromLabel, namehashFromDomain } from '../src/evm/utils';
+import {
+    labelhashFromLabel,
+    namehashFromDomain,
+    NetworkWithRpc,
+} from '../src/evm/utils';
 
 const PUBLIC_KEY = getAddress('0x087fafdb6edc2227cb102500ee646a7b766906b9');
+const RPC_URL =
+    'https://polygon-amoy.g.alchemy.com/v2/NcyrcRlO9XKhgEjbgp2nBaOLf4EeCVBi';
 
 describe('tldParser EVM tests', () => {
     it('should correctly parse a domain label', async () => {
@@ -20,7 +26,7 @@ describe('tldParser EVM tests', () => {
     });
 
     it('should perform fetching of all user domains', async () => {
-        const settings = new Network('amoy', 137);
+        const settings = new NetworkWithRpc('amoy', 137, RPC_URL);
         const parser = new TldParser(settings, 'amoy');
 
         const ownedDomainsReceived = await parser.getAllUserDomains(PUBLIC_KEY);
@@ -28,7 +34,7 @@ describe('tldParser EVM tests', () => {
     });
 
     it('should perform fetching of all user domains from a specific domain', async () => {
-        const settings = new Network('amoy', 137);
+        const settings = new NetworkWithRpc('amoy', 137, RPC_URL);
         const parser = new TldParser(settings, 'amoy');
 
         const ownedDomainsReceived = await parser.getAllUserDomainsFromTld(
@@ -45,7 +51,7 @@ describe('tldParser EVM tests', () => {
     });
 
     it('should perform fetching of owner from domain.tld', async () => {
-        const settings = new Network('amoy', 137);
+        const settings = new NetworkWithRpc('amoy', 137, RPC_URL);
         const parser = new TldParser(settings, 'amoy');
         const ownedDomainsReceived = await parser.getOwnerFromDomainTld(
             'testdomains2.domain',
@@ -54,7 +60,7 @@ describe('tldParser EVM tests', () => {
     });
 
     it('should perform fetching of name record from domain.tld', async () => {
-        const settings = new Network('amoy', 137);
+        const settings = new NetworkWithRpc('amoy', 137, RPC_URL);
         const parser = new TldParser(settings, 'amoy');
         const domainName = 'testdomains2.domain';
         const ownedDomainsReceived = await parser.getNameRecordFromDomainTld(
@@ -72,7 +78,7 @@ describe('tldParser EVM tests', () => {
     });
 
     it('should perform fetching of main domain from useraccount', async () => {
-        const settings = new Network('amoy', 137);
+        const settings = new NetworkWithRpc('amoy', 137, RPC_URL);
         const parser = new TldParser(settings, 'amoy');
         const domainName = PUBLIC_KEY;
 
