@@ -2,7 +2,6 @@
 
 import { Contract, Provider } from 'ethers';
 
-import { ROOT_ABI } from '../abis/root.abi';
 import { Address } from '../types/Address';
 import { EvmChainData } from '../types/EvmChainData';
 
@@ -15,20 +14,20 @@ export type TLD = {
     locked: boolean;
     node: string;
     label: string;
-}
+};
 
 export type PriceSchema = {
     for1: number;
     for2: number;
     for3: number;
-    for4: number;    
+    for4: number;
     for5plus: number;
-}
+};
 
 export type SplitSchema = {
     percentage: number;
     recipient: Address;
-}
+};
 
 async function getRegistryAddress(params: {
     config: EvmChainData;
@@ -41,7 +40,7 @@ async function getRegistryAddress(params: {
 
     const contract = new Contract(
         config.rootContractAddress,
-        ROOT_ABI,
+        ['function registry() view returns (address)'],
         provider,
     );
 
@@ -62,7 +61,9 @@ async function getTldData(params: {
 
     const contract = new Contract(
         config.rootContractAddress,
-        ROOT_ABI,
+        [
+            'function getTld(bytes32) view returns ((address, address, string, string, string, bool, bytes32, bytes32))',
+        ],
         provider,
     );
 
@@ -94,7 +95,9 @@ async function getTlds(params: {
 
     const contract = new Contract(
         config.rootContractAddress,
-        ROOT_ABI,
+        [
+            'function listTlds() view returns ((address, address, string, string, string, bool, bytes32, bytes32)[])',
+        ],
         provider,
     );
 

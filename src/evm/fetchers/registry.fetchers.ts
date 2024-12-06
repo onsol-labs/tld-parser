@@ -2,7 +2,6 @@
 
 import { Contract, Provider } from 'ethers';
 
-import { REGISTRY_ABI } from '../abis/registry.abi';
 import { Address } from '../types/Address';
 import { EvmChainData } from '../types/EvmChainData';
 
@@ -23,7 +22,11 @@ async function getDomainOwner(params: {
     if (!config) throw Error('Not connected to SmartContract');
     if (!registryAddress) throw Error('No registrar address');
 
-    const contract = new Contract(registryAddress, REGISTRY_ABI, provider);
+    const contract = new Contract(
+        registryAddress,
+        ['function owner(bytes32) view returns (address)'],
+        provider,
+    );
     const owner = await contract.owner(node);
 
     return owner;
@@ -40,7 +43,15 @@ async function getRecordData(params: {
     if (!config) throw Error('Not connected to SmartContract');
     if (!registryAddress) throw Error('No registrar address');
 
-    const contract = new Contract(registryAddress, REGISTRY_ABI, provider);
+    const contract = new Contract(
+        registryAddress,
+        [
+            'function owner(bytes32) view returns (address)',
+            'function resolver(bytes32) view returns (address)',
+            'function ttl(bytes32) view returns (uint256)',
+        ],
+        provider,
+    );
     const owner = await contract.owner(node);
     const resolver = await contract.resolver(node);
     const ttl = await contract.ttl(node);

@@ -9,7 +9,6 @@ import {
     Typed,
 } from 'ethers';
 
-import { REGISTRAR_ABI } from '../abis/registrar.abi';
 import { Address } from '../types/Address';
 import { EvmChainData } from '../types/EvmChainData';
 import { labelhashFromLabel } from '../utils';
@@ -43,7 +42,11 @@ async function getNameData(params: {
     if (!config) throw Error('Not connected to SmartContract');
     if (!registrarAddress) throw Error('No registrar address');
 
-    const contract = new Contract(registrarAddress, REGISTRAR_ABI, provider);
+    const contract = new Contract(
+        registrarAddress,
+        ['function nameData(string) view returns ((string, uint256, bool))'],
+        provider,
+    );
     const nameData = await contract.nameData(name);
 
     return nameData;
@@ -60,7 +63,20 @@ async function getScData(params: {
     if (!config) throw Error('Not connected to SmartContract');
     if (!registrarAddress) throw Error('No registrar address');
 
-    const contract = new Contract(registrarAddress, REGISTRAR_ABI, provider);
+    const contract = new Contract(
+        registrarAddress,
+        [
+            'function name() view returns (string)',
+            'function owner() view returns (address)',
+            'function tldNode() view returns (string)',
+            'function symbol() view returns (string)',
+            'function baseUri() view returns (string)',
+            'function gracePeriod() view returns (uint256)',
+            'function allFrozen() view returns (bool)',
+            'function defaultTTL() view returns (uint256)',
+        ],
+        provider,
+    );
 
     const name = (await contract.name()) as unknown as string;
     const owner = (await contract.owner()) as unknown as string;
@@ -96,7 +112,15 @@ async function getUsersNfts(params: {
     if (!registrarAddress) throw Error('No registrar address');
     if (!userAddress) throw Error('No user address');
 
-    const contract = new Contract(registrarAddress, REGISTRAR_ABI, provider);
+    const contract = new Contract(
+        registrarAddress,
+        [
+            'function getUserNfts(address) view returns (uint256[])',
+            'function nameData(uint256) view returns ((string, uint256, bool))',
+            'function tokenURI(uint256) view returns (string)',
+        ],
+        provider,
+    );
 
     const nfts = await contract.getUserNfts(userAddress);
 
@@ -133,7 +157,14 @@ async function getUserNftData(params: {
     if (!config) throw Error('Not connected to SmartContract');
     if (!registrarAddress) throw Error('No registrar address');
 
-    const contract = new Contract(registrarAddress, REGISTRAR_ABI, provider);
+    const contract = new Contract(
+        registrarAddress,
+        [
+            'function nameData(uint256) view returns ((string, uint256, bool))',
+            'function tokenURI(uint256) view returns (string)',
+        ],
+        provider,
+    );
 
     // Step 1 - convert full domain to only the name of the domain (e.g. domain.eth -> domain)
     const normalized = ensNormalize(domain);
@@ -177,7 +208,11 @@ async function transferNft(params: {
     const signer = await ethersProvider.getSigner();
     const from = await signer.getAddress();
 
-    const contract = new Contract(registrarAddress, REGISTRAR_ABI, signer);
+    const contract = new Contract(
+        registrarAddress,
+        ['function transferFrom(address, address, uint256)'],
+        signer,
+    );
     const tx = await contract.transferFrom(from, to, tokenId);
     await tx.wait();
 
@@ -199,7 +234,11 @@ async function burnNft(params: {
     const ethersProvider = new BrowserProvider(walletProvider);
     const signer = await ethersProvider.getSigner();
 
-    const contract = new Contract(registrarAddress, REGISTRAR_ABI, signer);
+    const contract = new Contract(
+        registrarAddress,
+        ['function burn(uint256)'],
+        signer,
+    );
     const tx = await contract.burn(tokenId);
     await tx.wait();
 

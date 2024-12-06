@@ -32,6 +32,7 @@ export function labelhashFromLabel(label: string): string {
     const labelhash = keccak256(toUtf8Bytes(normalizedLabel));
     return labelhash;
 }
+
 export function namehashFromDomain(domain: string): string {
     const label = namehash(domain);
     return label;
