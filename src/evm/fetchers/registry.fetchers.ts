@@ -63,28 +63,6 @@ async function getRecordData(params: {
     };
 }
 
-// async function burnNft(params: {
-//     tokenId: bigint;
-//     config: EvmChainData;
-//     walletProvider: Eip1193Provider;
-//     registrarAddress: Address | undefined;
-// }): Promise<string> {
-//     const { walletProvider, config, registrarAddress, tokenId } = params;
-
-//     if (!walletProvider) throw Error('User disconnected');
-//     if (!config) throw Error('Not connected to SmartContract');
-//     if (!registrarAddress) throw Error('No registrar address');
-
-//     const ethersProvider = new BrowserProvider(walletProvider);
-//     const signer = await ethersProvider.getSigner();
-
-//     const contract = new Contract(registrarAddress, REGISTRAR_ABI, signer);
-//     const tx = await contract.burn(tokenId);
-//     await tx.wait();
-
-//     return tx.hash;
-// }
-
 export const registryFetchers = {
     getDomainOwner,
     getRecordData,

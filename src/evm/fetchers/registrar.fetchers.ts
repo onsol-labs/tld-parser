@@ -1,13 +1,6 @@
 'use strict';
 
-import {
-    BrowserProvider,
-    Contract,
-    Eip1193Provider,
-    ensNormalize,
-    Provider,
-    Typed,
-} from 'ethers';
+import { Contract, ensNormalize, Provider, Typed } from 'ethers';
 
 import { Address } from '../types/Address';
 import { EvmChainData } from '../types/EvmChainData';
@@ -191,65 +184,9 @@ async function getUserNftData(params: {
     };
 }
 
-async function transferNft(params: {
-    to: Address;
-    tokenId: bigint;
-    config: EvmChainData;
-    walletProvider: Eip1193Provider;
-    registrarAddress: Address | undefined;
-}): Promise<string> {
-    const { walletProvider, config, registrarAddress, to, tokenId } = params;
-
-    if (!walletProvider) throw Error('User disconnected');
-    if (!config) throw Error('Not connected to SmartContract');
-    if (!registrarAddress) throw Error('No registrar address');
-
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const signer = await ethersProvider.getSigner();
-    const from = await signer.getAddress();
-
-    const contract = new Contract(
-        registrarAddress,
-        ['function transferFrom(address, address, uint256)'],
-        signer,
-    );
-    const tx = await contract.transferFrom(from, to, tokenId);
-    await tx.wait();
-
-    return tx.hash;
-}
-
-async function burnNft(params: {
-    tokenId: bigint;
-    config: EvmChainData;
-    walletProvider: Eip1193Provider;
-    registrarAddress: Address | undefined;
-}): Promise<string> {
-    const { walletProvider, config, registrarAddress, tokenId } = params;
-
-    if (!walletProvider) throw Error('User disconnected');
-    if (!config) throw Error('Not connected to SmartContract');
-    if (!registrarAddress) throw Error('No registrar address');
-
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const signer = await ethersProvider.getSigner();
-
-    const contract = new Contract(
-        registrarAddress,
-        ['function burn(uint256)'],
-        signer,
-    );
-    const tx = await contract.burn(tokenId);
-    await tx.wait();
-
-    return tx.hash;
-}
-
 export const registrarFetchers = {
     getNameData,
     getScData,
     getUsersNfts,
     getUserNftData,
-    transferNft,
-    burnNft,
 };
