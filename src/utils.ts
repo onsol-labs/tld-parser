@@ -147,13 +147,11 @@ export async function getAllTld(connection: Connection): Promise<
         parentAccount: PublicKey;
     }>
 > {
-    const tldHouseDiscriminator = [247, 144, 135, 1, 238, 173, 19, 249];
     const filters: any = [
         {
             memcmp: {
                 offset: 0,
-                bytes: tldHouseDiscriminator,
-                encoding: 'binary',
+                bytes: "iQgos3SdaVE",
             },
         },
     ];
