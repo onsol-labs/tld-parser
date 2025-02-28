@@ -1,14 +1,13 @@
-import { Aptos } from '@aptos-labs/ts-sdk';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { JsonRpcApiProvider } from 'ethers';
-import { NameRecord } from 'move';
 import { AddressAndDomain } from './evm/types/AddressAndDomain';
 import { NameAccountAndDomain } from './svm/name-record-handler';
 import { MainDomain } from './svm/state/main-domain';
 import { NameRecordHeader } from './svm/state/name-record-header';
+import { NameRecord } from 'evm/types/NameRecordHeader';
 
 export interface ITldParser {
-    connection: Connection | Aptos | JsonRpcApiProvider;
+    connection: Connection | JsonRpcApiProvider;
     /**
      * retrieves all nameAccounts for any user.
      *

@@ -1,16 +1,14 @@
-import { Aptos, AptosSettings } from '@aptos-labs/ts-sdk';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { JsonRpcApiProvider } from 'ethers';
 import { TldParserEvm } from './evm/parsers';
 import { AddressAndDomain } from './evm/types/AddressAndDomain';
 import { NetworkWithRpc } from './evm/utils';
-import { NameRecord } from './move';
-import { TldParserMove } from './move/parsers';
 import { ITldParser } from './parsers.interface';
 import { NameAccountAndDomain } from './svm/name-record-handler';
 import { TldParserSvm } from './svm/parsers';
 import { MainDomain } from './svm/state/main-domain';
 import { NameRecordHeader } from './svm/state/name-record-header';
+import { NameRecord } from 'evm';
 
 /**
  * TldParser class
@@ -22,10 +20,10 @@ import { NameRecordHeader } from './svm/state/name-record-header';
  * The TldParser for multiple chains will be implemented, and Solana integration will remain unchanged without any breaking modifications.
  */
 export class TldParser implements ITldParser {
-    connection: Connection | Aptos | JsonRpcApiProvider;
+    connection: Connection | JsonRpcApiProvider;
 
     constructor(
-        connection: Connection | AptosSettings | NetworkWithRpc,
+        connection: Connection | NetworkWithRpc,
         chain?: string,
     ) {
         if (new.target === TldParser) {
@@ -34,7 +32,7 @@ export class TldParser implements ITldParser {
     }
 
     private static createParser(
-        connection: Connection | AptosSettings | NetworkWithRpc,
+        connection: Connection | NetworkWithRpc,
         chain?: string,
     ): ITldParser {
         switch (chain?.toLowerCase()) {
@@ -44,10 +42,7 @@ export class TldParser implements ITldParser {
             case 'solana':
             case undefined:
                 return new TldParserSvm(connection as Connection);
-            case 'move':
-                return new TldParserMove(connection as AptosSettings);
             case 'monad':
-            case 'amoy':
                 return new TldParserEvm(connection as NetworkWithRpc);
             default:
                 throw new Error(`Unsupported TldParser chain: ${chain}`);

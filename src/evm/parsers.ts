@@ -1,8 +1,6 @@
-import { AptosSettings } from '@aptos-labs/ts-sdk';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { ensNormalize, EnsPlugin, JsonRpcProvider, namehash } from 'ethers';
+import { ensNormalize, EnsPlugin, JsonRpcProvider } from 'ethers';
 
-import { NameRecord } from '../move';
 import { ITldParser } from '../parsers.interface';
 import { MainDomain, NameAccountAndDomain, NameRecordHeader } from '../svm';
 import { registrarFetchers } from './fetchers/registrar.fetchers';
@@ -14,14 +12,16 @@ import { EvmChainData } from './types/EvmChainData';
 import {
     configOfEvmChainId,
     labelhashFromLabel,
+    ansNamehash,
     NetworkWithRpc,
 } from './utils';
+import { NameRecord } from './types/NameRecordHeader';
 
 export class TldParserEvm implements ITldParser {
     connection: JsonRpcProvider;
     private config: EvmChainData;
 
-    constructor(settings?: Connection | AptosSettings | NetworkWithRpc) {
+    constructor(settings?: Connection | NetworkWithRpc) {
         if (settings instanceof NetworkWithRpc) {
             const chainId = parseInt(settings.chainId.toString());
             const config = configOfEvmChainId(chainId);
@@ -39,7 +39,7 @@ export class TldParserEvm implements ITldParser {
     }
 
     async getAllUserDomains(
-        userAccount: PublicKey | string,
+        userAccount: string,
     ): Promise<NameRecord[]> {
         const isValidAddr = isValidAddress(userAccount as string);
         if (!isValidAddr) {
@@ -75,7 +75,7 @@ export class TldParserEvm implements ITldParser {
     }
 
     async getAllUserDomainsFromTld(
-        userAccount: PublicKey | string,
+        userAccount: string,
         tld: string,
     ): Promise<PublicKey[] | NameRecord[]> {
         const isValidAddr = isValidAddress(userAccount as string);
@@ -111,8 +111,7 @@ export class TldParserEvm implements ITldParser {
     async getOwnerFromDomainTld(
         domainTld: string,
     ): Promise<PublicKey | undefined | string> {
-        const normalized = ensNormalize(domainTld);
-        const node = namehash(normalized);
+        const node = ansNamehash(domainTld);
         const owner = await registryFetchers.getDomainOwner({
             config: this.config,
             provider: this.connection,
@@ -127,7 +126,7 @@ export class TldParserEvm implements ITldParser {
         domainTld: string,
     ): Promise<NameRecordHeader | NameRecord | undefined> {
         const normalized = ensNormalize(domainTld);
-        const node = namehash(normalized);
+        const node = ansNamehash(normalized);
         const recordData = await registryFetchers.getRecordData({
             config: this.config,
             provider: this.connection,
@@ -154,7 +153,7 @@ export class TldParserEvm implements ITldParser {
             domain_name: nftData.name,
             expires_at: nftData.expiry.toString(),
             main_domain_address: recordData.owner,
-            tld: `.${tldData.name}`,
+            tld: `${tldData.name}`,
             transferrable: !nftData.frozen,
         };
     }
@@ -162,9 +161,6 @@ export class TldParserEvm implements ITldParser {
     getTldFromParentAccount(
         parentAccount: PublicKey | string,
     ): Promise<string> {
-        /**
-         * ???
-         */
         throw new Error('Method not implemented.');
     }
 
@@ -172,9 +168,6 @@ export class TldParserEvm implements ITldParser {
         nameAccount: PublicKey | string,
         parentAccountOwner: PublicKey | string,
     ): Promise<string> {
-        /**
-         * ???
-         */
         throw new Error('Method not implemented.');
     }
 
@@ -212,13 +205,6 @@ export class TldParserEvm implements ITldParser {
         userAccount: PublicKey | string,
         tld: string,
     ): Promise<NameAccountAndDomain[]> {
-        /**
-         * TODO
-         * ??? Unwrapped ???
-         * - call `getUserNfts` for the registrar of the tld
-         * - get the associated domain for each nft id
-         * - parse all the data to the required return format
-         */
         throw new Error('Method not implemented.');
     }
 
@@ -226,12 +212,6 @@ export class TldParserEvm implements ITldParser {
         userAccount: PublicKey | string,
         tld: string,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
-        /**
-         * TODO
-         * - call `getUserNfts` for the registrar of the tld
-         * - get the associated domain for each nft id
-         * - parse all the data to the required return format
-         */
         const isValidAddr = isValidAddress(userAccount as string);
         if (!isValidAddr) {
             throw new Error(`Invalid address for EVM chain: ${userAccount}`);
@@ -261,14 +241,6 @@ export class TldParserEvm implements ITldParser {
     getParsedAllUserDomainsUnwrapped(
         userAccount: PublicKey | string,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
-        /**
-         * TODO
-         * ??? Unwrapped ???
-         * - get all the registrars for the registry (root contract)
-         * - call `getUserNfts` for each registrar to get the owned nft id
-         * - get the associated domain for each nft id
-         * - parse all the data to the required return format
-         */
         throw new Error('Method not implemented.');
     }
 
@@ -337,6 +309,6 @@ export class TldParserEvm implements ITldParser {
         // Considering there can be unlimited subdomains, the last part after a dot is the tld
         const parts = domain.split('.');
         const tld = parts[parts.length - 1];
-        return tld;
+        return '.' + tld;
     }
 }

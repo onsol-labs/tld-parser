@@ -20,12 +20,11 @@ import {
 import { MULTIPLE_ACCOUNT_INFO_MAX } from './constants';
 import { NameAccountAndDomain, getDomainKey } from './name-record-handler';
 import { ITldParser } from '../parsers.interface';
-import { AptosSettings } from '@aptos-labs/ts-sdk';
 
 export class TldParserSvm implements ITldParser {
     connection: Connection;
 
-    constructor(connection: Connection | AptosSettings) {
+    constructor(connection: Connection) {
         if (connection instanceof Connection) {
             this.connection = connection;
         } else {
