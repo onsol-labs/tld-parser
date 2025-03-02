@@ -71,20 +71,20 @@ describe('tldParser EVM tests', () => {
         expect(ownedDomainsReceived).toEqual(expectedNameRecord);
     });
 
-    // it('should perform fetching of main domain from useraccount', async () => {
-    //     const settings = new NetworkWithRpc('monad', 10143, RPC_URL);
-    //     const parser = new TldParser(settings, 'monad');
-    //     const domainName = PUBLIC_KEY;
+    it('should perform fetching of main domain from useraccount', async () => {
+        const settings = new NetworkWithRpc('monad', 10143, RPC_URL);
+        const parser = new TldParser(settings, 'monad');
+        const domainName = PUBLIC_KEY;
 
-    //     const ownedDomainsReceived = await parser.getMainDomain(domainName) ;
-    //     const expectedNameRecord = <NameRecord>{
-    //         created_at: '1743319585',
-    //         domain_name: 'miester',
-    //         expires_at: '1743319885',
-    //         main_domain_address: PUBLIC_KEY,
-    //         tld: '.mon',
-    //         transferrable: true,
-    //     };
-    //     expect(ownedDomainsReceived).toEqual(expectedNameRecord);
-    // }); 
+        const ownedDomainsReceived = await parser.getMainDomain(domainName) ;
+        const expectedNameRecord = <NameRecord>{
+            created_at: '1743319585',
+            domain_name: 'miester',
+            expires_at: '1743319885',
+            main_domain_address: PUBLIC_KEY,
+            tld: '.mon',
+            transferrable: true,
+        };
+        expect(ownedDomainsReceived).toEqual(expectedNameRecord);
+    }); 
 });

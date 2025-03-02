@@ -179,26 +179,16 @@ export class TldParserEvm implements ITldParser {
             throw new Error(`Invalid address for EVM chain: ${userAddress}`);
         }
 
-        const domain = await this.connection.lookupAddress(
-            userAddress as string,
-        );
-        if (!domain) {
-            throw new Error(`No domain found for address: ${userAddress}`);
+        const mainDomain = await registrarFetchers.getMainDomainRaw({
+            provider: this.connection,
+            address: userAddress as Address,
+            rootAddress: this.config.rootContractAddress as Address
+        })
+        
+        if (!mainDomain) {
+            throw new Error(`No main domain found for: ${userAddress}`);
         }
-
-        const forwardResolver = await this.connection.getResolver(domain);
-
-        if (!forwardResolver) {
-            throw new Error(`No resolver found for domain: ${domain}`);
-        }
-
-        const verifiedAddress = await forwardResolver.getAddress();
-
-        if (!verifiedAddress) {
-            throw new Error(`No verified address found for domain: ${domain}`);
-        }
-
-        return (await this.getNameRecordFromDomainTld(domain)) as NameRecord;
+        return (await this.getNameRecordFromDomainTld(mainDomain)) as NameRecord;
     }
 
     getParsedAllUserDomainsFromTldUnwrapped(

@@ -183,10 +183,56 @@ async function getUserNftData(params: {
         url: tokenUrl,
     };
 }
+async function getMainDomainRaw(params: {
+    provider: Provider;
+    address: Address;
+    rootAddress: Address;
+}): Promise<string | null> {
+    const { provider, address, rootAddress } = params;
+
+    if (!provider) throw Error('No provider');
+    if (!address) throw Error('No address provided');
+    if (!rootAddress) throw Error('No root address');
+
+    try {
+        const rootContract = new Contract(rootAddress, [
+            'function reverseRegistrar() view returns (address)'
+        ], provider);
+        const reverseRegistrarAddress = await rootContract.reverseRegistrar();
+
+        const reverseRegistrarContract = new Contract(
+            reverseRegistrarAddress,
+            [
+                'function node(address) view returns (bytes32)',
+                'function defaultResolver() view returns (address)'
+            ],
+            provider
+        );
+        const reverseNode = await reverseRegistrarContract.node(address);
+
+        const resolverAddress = await reverseRegistrarContract.defaultResolver();
+
+        const resolverContract = new Contract(
+            resolverAddress,
+            [
+                'function name(bytes32) view returns (string)'
+            ],
+            provider
+        );
+
+        const mainDomain = await resolverContract.name(reverseNode);
+
+        return mainDomain || null;
+    } catch (error) {
+        console.error('Error fetching primary ENS domain:', error);
+        return null;
+    }
+}
 
 export const registrarFetchers = {
     getNameData,
     getScData,
     getUsersNfts,
     getUserNftData,
+    getMainDomainRaw
 };
