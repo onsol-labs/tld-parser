@@ -50,7 +50,10 @@ export async function getNameOwner(
     nameAccountKey: PublicKey,
     tldHouse?: PublicKey,
 ): Promise<PublicKey | undefined> {
-    const nameAccount = await NameRecordHeader.fromAccountAddress(connection, nameAccountKey)
+    const nameAccount = await NameRecordHeader.fromAccountAddress(
+        connection,
+        nameAccountKey,
+    );
     const owner = nameAccount.owner;
     if (!nameAccount.isValid) return undefined;
     if (!tldHouse) return owner;
@@ -454,4 +457,103 @@ export function splitDomainTld(domain: string) {
     }
 
     return [tld, domainName, subdomain];
+}
+
+export function findMintAddress(
+    nameAccount: PublicKey,
+    nameHouseAccount: PublicKey,
+  ) {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from(NAME_HOUSE_PREFIX),
+        nameHouseAccount.toBuffer(),
+        nameAccount.toBuffer(),
+      ],
+      NAME_HOUSE_PROGRAM_ID,
+    );
+  }
+
+export function findRenewableMintAddress(
+    nameAccount: PublicKey,
+    nameHouseAccount: PublicKey,
+    expiresAtBuffer: Buffer,
+  ) {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from(NAME_HOUSE_PREFIX),
+        nameHouseAccount.toBuffer(),
+        nameAccount.toBuffer(),
+        expiresAtBuffer,
+      ],
+      NAME_HOUSE_PROGRAM_ID,
+    );
+  }
+
+/**
+ * retrieves owner of the name account
+ *
+ * @param connection sol connection
+ * @param nameAccountKey nameAccount to get owner of.
+ */
+export async function getDomainMintAccountKey(
+    connection: Connection,
+    nameAccountKey: PublicKey,
+    tldHouse: PublicKey,
+): Promise<PublicKey | undefined> {
+    const nameAccount = await NameRecordHeader.fromAccountAddress(
+        connection,
+        nameAccountKey,
+    );
+    const expiryDate = nameAccount.expiresAt;
+    const secondSinceEpoch = new Date(0);
+    let mintAccount: PublicKey | undefined;
+    const [nameHouse] = findNameHouse(tldHouse);
+    if (expiryDate === secondSinceEpoch) {
+        [mintAccount] = findMintAddress(
+            nameAccountKey,
+          nameHouse,
+        );
+    } else {
+        [mintAccount] = findRenewableMintAddress(
+            nameAccountKey,
+          nameHouse,
+          dateToU64Buffer(expiryDate),
+        );
+
+    }
+    return mintAccount
+}
+
+export async function getMintAccountFromDomainTld(
+    connection: Connection,
+    domainTld: string,
+): Promise<PublicKey | undefined> {
+    const domainTldSplit = domainTld.split('.');
+    const domain = domainTldSplit[0];
+    const tldName = '.' + domainTldSplit[1];
+
+    const nameOriginTldKey = await getOriginNameAccountKey();
+    const parentHashedName = await getHashedName(tldName);
+    const [parentAccountKey] = getNameAccountKeyWithBump(
+        parentHashedName,
+        undefined,
+        nameOriginTldKey,
+    );
+
+    const domainHashedName = await getHashedName(domain);
+    const [domainAccountKey] = getNameAccountKeyWithBump(
+        domainHashedName,
+        undefined,
+        parentAccountKey,
+    );
+
+    const [tldHouse] = findTldHouse(tldName);
+    return await getDomainMintAccountKey(connection, domainAccountKey, tldHouse);
+}
+
+function dateToU64Buffer(expiryDate: Date): Buffer {
+    const secondsSinceEpoch = Math.floor(expiryDate.getTime() / 1000);
+    const buffer = Buffer.alloc(8);
+    buffer.writeBigUInt64BE(BigInt(secondsSinceEpoch));
+    return buffer;
 }

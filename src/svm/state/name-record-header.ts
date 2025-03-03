@@ -32,7 +32,8 @@ export class NameRecordHeader {
                 .readU64()
                 .toNumber() === 0
                 ? true
-                : this.expiresAt.getTime() + gracePeriod > new Date(Date.now()).getTime();
+                : this.expiresAt.getTime() + gracePeriod >
+                  new Date(Date.now()).getTime();
         this.owner = this.isValid ? new PublicKey(obj.owner) : undefined;
     }
 
