@@ -23,7 +23,7 @@ Below are examples demonstrating key functions for both Solana and EVM implement
 ```javascript
 
 import { Connection, PublicKey } from '@solana/web3.js';
-import { TldParser, getDomainKey, Record, NameRecordHeader } from 'tld-parser';
+import { TldParser, getDomainKey, Record, NameRecordHeader } from '@onsol/tldparser';
 
 // Constants
 const RPC_URL = 'https://mainnet.rpcpool.com/';
@@ -74,7 +74,7 @@ const allTlds = await getAllTlds(connection);
 ### EVM (Monad) Examples
 ```javascript
 
-import { TldParser, NetworkWithRpc } from 'tld-parser';
+import { TldParser, NetworkWithRpc } from '@onsol/tldparser';
 import { getAddress } from 'ethers';
 
 // Constants

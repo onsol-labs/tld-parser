@@ -5,4 +5,5 @@ export * from './types/AddressAndDomain';
 export * from './types/EnumValues';
 export * from './types/EvmChainData';
 export * from './types/NameRecordHeader';
+export * from './utils';
 
