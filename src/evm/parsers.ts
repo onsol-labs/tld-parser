@@ -153,7 +153,7 @@ export class TldParserEvm implements ITldParser {
             domain_name: nftData.name,
             expires_at: nftData.expiry.toString(),
             main_domain_address: recordData.owner,
-            tld: `${tldData.name}`,
+            tld: `${tldData.tld}`,
             transferrable: !nftData.frozen,
         };
     }

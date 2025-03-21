@@ -29,7 +29,7 @@ describe('tldParser EVM tests', () => {
         const parser = new TldParser(settings, 'monad');
 
         const ownedDomainsReceived = await parser.getAllUserDomains(PUBLIC_KEY);
-        expect(ownedDomainsReceived).toHaveLength(1);
+        expect(ownedDomainsReceived).toHaveLength(11);
     });
 
     it('should perform fetching of all user domains from a specific domain', async () => {
@@ -40,7 +40,7 @@ describe('tldParser EVM tests', () => {
             PUBLIC_KEY,
             '.mon',
         );
-        expect(ownedDomainsReceived).toHaveLength(1);
+        expect(ownedDomainsReceived).toHaveLength(2);
     });
 
     it('should perform fetching of owner from domain.tld', async () => {
@@ -61,9 +61,9 @@ describe('tldParser EVM tests', () => {
             domainName,
         );
         const expectedNameRecord = <NameRecord>{
-            created_at: '1743319585',
+            created_at: '1772642402',
             domain_name: 'miester',
-            expires_at: '1743319885',
+            expires_at: '1772642702',
             main_domain_address: PUBLIC_KEY,
             tld: '.mon',
             transferrable: true,
@@ -78,9 +78,9 @@ describe('tldParser EVM tests', () => {
 
         const ownedDomainsReceived = await parser.getMainDomain(domainName) ;
         const expectedNameRecord = <NameRecord>{
-            created_at: '1743319585',
+            created_at: '1772642402',
             domain_name: 'miester',
-            expires_at: '1743319885',
+            expires_at: '1772642702',
             main_domain_address: PUBLIC_KEY,
             tld: '.mon',
             transferrable: true,
