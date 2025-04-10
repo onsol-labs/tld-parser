@@ -75,7 +75,7 @@ export class TldParserEvm implements ITldParser {
                 expires_at: domain.nft.expiry.toString(),
                 main_domain_address: '',
                 tld: domain.tld.tld,
-                transferrable: domain.nft.frozen,
+                transferrable: !domain.nft.frozen,
             };
         });
     }
@@ -109,7 +109,7 @@ export class TldParserEvm implements ITldParser {
                 expires_at: domain.nft.expiry.toString(),
                 main_domain_address: '',
                 tld: domain.tld.tld,
-                transferrable: domain.nft.frozen,
+                transferrable: !domain.nft.frozen,
             };
         });
     }

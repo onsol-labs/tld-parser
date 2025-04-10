@@ -1,6 +1,6 @@
 {
   "name": "@onsol/tldparser",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "TLD House (Solana and EVM) Javascript API",
   "keywords": [
     "api",
