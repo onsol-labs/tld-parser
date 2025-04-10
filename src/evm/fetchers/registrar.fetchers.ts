@@ -1,6 +1,6 @@
 'use strict';
 
-import { Contract, ensNormalize, Provider, Typed } from 'ethers';
+import { Contract, ensNormalize, namehash as ensNamehash, Provider, Typed } from 'ethers';
 
 import { Address } from '../types/Address';
 import { EvmChainData } from '../types/EvmChainData';
@@ -11,7 +11,7 @@ type NameData = {
     expiry: number;
     frozen: boolean;
 };
-export type UserNft = NameData & { id: bigint; url: string };
+export type UserNft = NameData & { id: bigint; url?: string };
 
 type ScData = {
     name: string;
@@ -97,8 +97,9 @@ async function getUsersNfts(params: {
     provider: Provider;
     registrarAddress: Address | undefined;
     userAddress: Address | undefined;
+    withTokenUrl?: boolean;
 }): Promise<UserNft[]> {
-    const { config, provider, registrarAddress, userAddress } = params;
+    const { config, provider, registrarAddress, userAddress, withTokenUrl } = params;
 
     if (!provider) throw Error('No provider');
     if (!config) throw Error('Not connected to SmartContract');
@@ -117,24 +118,24 @@ async function getUsersNfts(params: {
 
     const nfts = await contract.getUserNfts(userAddress);
 
-    const nftData = [] as UserNft[];
-    for (let i = 0; i < nfts.length; i++) {
-        const tokenId = nfts[i];
-        const tokenDataRaw = (await contract.nameData(
-            Typed.uint256(tokenId),
-        )) as [unknown, unknown, unknown];
-        const tokenUrl = (await contract.tokenURI(
-            tokenId,
-        )) as unknown as string;
+    const nftData = await Promise.all(
+        nfts.map(async (tokenId) => {
+            const tokenDataRaw = (await contract.nameData(
+                Typed.uint256(tokenId),
+            )) as [unknown, unknown, unknown];
 
-        nftData.push({
-            name: tokenDataRaw[0] as string,
-            expiry: parseInt(tokenDataRaw[1] as string),
-            frozen: tokenDataRaw[2] as boolean,
-            id: tokenId,
-            url: tokenUrl,
-        });
-    }
+            const tokenUrl = withTokenUrl && (await contract.tokenURI(
+                tokenId,
+            )) as unknown as string;
+            return {
+                name: tokenDataRaw[0] as string,
+                expiry: parseInt(tokenDataRaw[1] as string),
+                frozen: tokenDataRaw[2] as boolean,
+                url: tokenUrl,
+                id: tokenId,
+            };
+        }),
+    );
 
     return nftData;
 }
@@ -183,6 +184,7 @@ async function getUserNftData(params: {
         url: tokenUrl,
     };
 }
+
 async function getMainDomainRaw(params: {
     provider: Provider;
     address: Address;
@@ -195,36 +197,22 @@ async function getMainDomainRaw(params: {
     if (!rootAddress) throw Error('No root address');
 
     try {
-        const rootContract = new Contract(rootAddress, [
-            'function reverseRegistrar() view returns (address)'
-        ], provider);
-        const reverseRegistrarAddress = await rootContract.reverseRegistrar();
-
-        const reverseRegistrarContract = new Contract(
-            reverseRegistrarAddress,
-            [
-                'function node(address) view returns (bytes32)',
-                'function defaultResolver() view returns (address)'
-            ],
-            provider
+        const reverseNode = ensNamehash(
+            address.substring(2).toLowerCase() + ".addr.reverse",
         );
-        const reverseNode = await reverseRegistrarContract.node(address);
-
-        const resolverAddress = await reverseRegistrarContract.defaultResolver();
+        const resolverAddress = "0x741b2C8254495EbB84440A768bE0B5bACA62F6e8";
 
         const resolverContract = new Contract(
             resolverAddress,
-            [
-                'function name(bytes32) view returns (string)'
-            ],
-            provider
+            ['function name(bytes32) view returns (string)'],
+            provider,
         );
 
         const mainDomain = await resolverContract.name(reverseNode);
 
         return mainDomain || null;
     } catch (error) {
-        console.error('Error fetching primary ENS domain:', error);
+        console.error('Error fetching primary ANS domain:', error);
         return null;
     }
 }
@@ -234,5 +222,5 @@ export const registrarFetchers = {
     getScData,
     getUsersNfts,
     getUserNftData,
-    getMainDomainRaw
+    getMainDomainRaw,
 };

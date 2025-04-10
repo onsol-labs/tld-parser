@@ -5,9 +5,9 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "dist/esm",
-    "declarationDir": "dist/types"
+    "declarationDir": "dist/types",
+    "allowSyntheticDefaultImports": true // Enable synthetic default imports
   },
-  "rootDir": "./src",
   "include": ["src/**/*.ts"],
   "exclude": [
     "src/**/*.spec.ts",

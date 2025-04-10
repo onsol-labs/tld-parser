@@ -4,9 +4,8 @@
       "ESNext",
       "DOM"
     ],
-    "module": "commonjs",
-    "target": "es6",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "target": "ESNext",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "declaration": true,

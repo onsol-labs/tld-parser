@@ -29,7 +29,7 @@ describe('tldParser EVM tests', () => {
         const parser = new TldParser(settings, 'monad');
 
         const ownedDomainsReceived = await parser.getAllUserDomains(PUBLIC_KEY);
-        expect(ownedDomainsReceived).toHaveLength(11);
+        expect(ownedDomainsReceived).toHaveLength(13);
     });
 
     it('should perform fetching of all user domains from a specific domain', async () => {
@@ -40,7 +40,7 @@ describe('tldParser EVM tests', () => {
             PUBLIC_KEY,
             '.mon',
         );
-        expect(ownedDomainsReceived).toHaveLength(2);
+        expect(ownedDomainsReceived).toHaveLength(4);
     });
 
     it('should perform fetching of owner from domain.tld', async () => {

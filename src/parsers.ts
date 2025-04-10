@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from '@solana/web3.js';
-import { JsonRpcApiProvider } from 'ethers';
+import { Provider } from 'ethers';
 import { TldParserEvm } from './evm/parsers';
 import { AddressAndDomain } from './evm/types/AddressAndDomain';
 import { NetworkWithRpc } from './evm/utils';
@@ -20,12 +20,9 @@ import { NameRecord } from 'evm';
  * The TldParser for multiple chains will be implemented, and Solana integration will remain unchanged without any breaking modifications.
  */
 export class TldParser implements ITldParser {
-    connection: Connection | JsonRpcApiProvider;
+    connection: Connection | Provider;
 
-    constructor(
-        connection: Connection | NetworkWithRpc,
-        chain?: string,
-    ) {
+    constructor(connection: Connection | NetworkWithRpc, chain?: string) {
         if (new.target === TldParser) {
             return TldParser.createParser(connection, chain);
         }

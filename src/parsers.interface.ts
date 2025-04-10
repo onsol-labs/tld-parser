@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from '@solana/web3.js';
-import { JsonRpcApiProvider } from 'ethers';
+import { Provider } from 'ethers';
 import { AddressAndDomain } from './evm/types/AddressAndDomain';
 import { NameAccountAndDomain } from './svm/name-record-handler';
 import { MainDomain } from './svm/state/main-domain';
@@ -7,7 +7,7 @@ import { NameRecordHeader } from './svm/state/name-record-header';
 import { NameRecord } from 'evm/types/NameRecordHeader';
 
 export interface ITldParser {
-    connection: Connection | JsonRpcApiProvider;
+    connection: Connection | Provider;
     /**
      * retrieves all nameAccounts for any user.
      *

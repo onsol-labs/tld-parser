@@ -4,6 +4,7 @@ import {
     hexlify,
     keccak256,
     Network,
+    Provider,
     toUtf8Bytes,
     ZeroHash,
 } from 'ethers';
@@ -12,10 +13,17 @@ import { EvmChainData } from './types/EvmChainData';
 
 export class NetworkWithRpc extends Network {
     public rpcUrl: string;
+    public provider: Provider | undefined;
 
-    constructor(name: string, chainId: number, rpcUrl: string) {
+    constructor(
+        name: string,
+        chainId: number,
+        rpcUrl: string,
+        provider?: Provider,
+    ) {
         super(name, chainId);
         this.rpcUrl = rpcUrl;
+        this.provider = provider;
     }
 }
 
@@ -49,24 +57,26 @@ export function namehashFromDomain(domain: string): string {
     return label;
 }
 
-
 export function ansNamehash(name: string): string {
     let result: string | Uint8Array = ZeroHash;
 
     const comps = ansNameSplit(name);
     while (comps.length) {
-        result = keccak256(concat([ result, keccak256(<Uint8Array>(comps.pop()))] ));
+        result = keccak256(
+            concat([result, keccak256(<Uint8Array>comps.pop())]),
+        );
     }
 
     return hexlify(result);
 }
 
-
 function ansNameSplit(name: string): Array<Uint8Array> {
     const bytes = toUtf8Bytes(ensNormalize(name));
-    const comps: Array<Uint8Array> = [ ];
+    const comps: Array<Uint8Array> = [];
 
-    if (name.length === 0) { return comps; }
+    if (name.length === 0) {
+        return comps;
+    }
 
     let last = 0;
     for (let i = 0; i < bytes.length; i++) {

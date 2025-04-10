@@ -126,9 +126,9 @@ export async function findOwnedNameAccountsForUser(
     }
 
     const accounts = await connection.getProgramAccounts(ANS_PROGRAM_ID, {
-        filters: filters
+        filters: filters,
     });
-    
+
     return accounts.map((a: any) => a.pubkey);
 }
 
@@ -154,7 +154,7 @@ export async function getAllTld(connection: Connection): Promise<
         {
             memcmp: {
                 offset: 0,
-                bytes: "iQgos3SdaVE",
+                bytes: 'iQgos3SdaVE',
             },
         },
     ];
@@ -462,32 +462,32 @@ export function splitDomainTld(domain: string) {
 export function findMintAddress(
     nameAccount: PublicKey,
     nameHouseAccount: PublicKey,
-  ) {
+) {
     return PublicKey.findProgramAddressSync(
-      [
-        Buffer.from(NAME_HOUSE_PREFIX),
-        nameHouseAccount.toBuffer(),
-        nameAccount.toBuffer(),
-      ],
-      NAME_HOUSE_PROGRAM_ID,
+        [
+            Buffer.from(NAME_HOUSE_PREFIX),
+            nameHouseAccount.toBuffer(),
+            nameAccount.toBuffer(),
+        ],
+        NAME_HOUSE_PROGRAM_ID,
     );
-  }
+}
 
 export function findRenewableMintAddress(
     nameAccount: PublicKey,
     nameHouseAccount: PublicKey,
     expiresAtBuffer: Buffer,
-  ) {
+) {
     return PublicKey.findProgramAddressSync(
-      [
-        Buffer.from(NAME_HOUSE_PREFIX),
-        nameHouseAccount.toBuffer(),
-        nameAccount.toBuffer(),
-        expiresAtBuffer,
-      ],
-      NAME_HOUSE_PROGRAM_ID,
+        [
+            Buffer.from(NAME_HOUSE_PREFIX),
+            nameHouseAccount.toBuffer(),
+            nameAccount.toBuffer(),
+            expiresAtBuffer,
+        ],
+        NAME_HOUSE_PROGRAM_ID,
     );
-  }
+}
 
 /**
  * retrieves owner of the name account
@@ -509,19 +509,15 @@ export async function getDomainMintAccountKey(
     let mintAccount: PublicKey | undefined;
     const [nameHouse] = findNameHouse(tldHouse);
     if (expiryDate === secondSinceEpoch) {
-        [mintAccount] = findMintAddress(
-            nameAccountKey,
-          nameHouse,
-        );
+        [mintAccount] = findMintAddress(nameAccountKey, nameHouse);
     } else {
         [mintAccount] = findRenewableMintAddress(
             nameAccountKey,
-          nameHouse,
-          dateToU64Buffer(expiryDate),
+            nameHouse,
+            dateToU64Buffer(expiryDate),
         );
-
     }
-    return mintAccount
+    return mintAccount;
 }
 
 export async function getMintAccountFromDomainTld(
@@ -548,7 +544,11 @@ export async function getMintAccountFromDomainTld(
     );
 
     const [tldHouse] = findTldHouse(tldName);
-    return await getDomainMintAccountKey(connection, domainAccountKey, tldHouse);
+    return await getDomainMintAccountKey(
+        connection,
+        domainAccountKey,
+        tldHouse,
+    );
 }
 
 function dateToU64Buffer(expiryDate: Date): Buffer {

@@ -2,12 +2,12 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
-    "target": "ES6",
+    "target": "ESNext",
     "module": "CommonJS",
     "outDir": "dist/cjs",
-    "declarationDir": "dist/types"
+    "declarationDir": "dist/types",
+    "allowSyntheticDefaultImports": true // Enable synthetic default imports
   },
-  "rootDir": "./src",
   "include": ["src/**/*.ts"],
   "exclude": [
     "src/**/*.spec.ts",

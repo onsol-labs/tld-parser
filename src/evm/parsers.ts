@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from '@solana/web3.js';
-import { ensNormalize, EnsPlugin, JsonRpcProvider } from 'ethers';
+import { ensNormalize, EnsPlugin, JsonRpcProvider, Provider } from 'ethers';
 
 import { ITldParser } from '../parsers.interface';
 import { MainDomain, NameAccountAndDomain, NameRecordHeader } from '../svm';
@@ -18,7 +18,7 @@ import {
 import { NameRecord } from './types/NameRecordHeader';
 
 export class TldParserEvm implements ITldParser {
-    connection: JsonRpcProvider;
+    connection: Provider;
     private config: EvmChainData;
 
     constructor(settings?: Connection | NetworkWithRpc) {
@@ -30,17 +30,23 @@ export class TldParserEvm implements ITldParser {
             settings.attachPlugin(
                 new EnsPlugin(config.registryContractAddress, chainId),
             );
-            this.connection = new JsonRpcProvider(settings.rpcUrl, settings, {
-                staticNetwork: true,
-            });
+            if (settings.provider) {
+                this.connection = settings.provider;
+            } else {
+                this.connection = new JsonRpcProvider(
+                    settings.rpcUrl,
+                    settings,
+                    {
+                        staticNetwork: true,
+                    },
+                );
+            }
         } else {
             throw new Error('Method not implemented.');
         }
     }
 
-    async getAllUserDomains(
-        userAccount: string,
-    ): Promise<NameRecord[]> {
+    async getAllUserDomains(userAccount: string): Promise<NameRecord[]> {
         const isValidAddr = isValidAddress(userAccount as string);
         if (!isValidAddr) {
             throw new Error(`Invalid address for EVM chain: ${userAccount}`);
@@ -182,13 +188,15 @@ export class TldParserEvm implements ITldParser {
         const mainDomain = await registrarFetchers.getMainDomainRaw({
             provider: this.connection,
             address: userAddress as Address,
-            rootAddress: this.config.rootContractAddress as Address
-        })
-        
+            rootAddress: this.config.rootContractAddress as Address,
+        });
+
         if (!mainDomain) {
             throw new Error(`No main domain found for: ${userAddress}`);
         }
-        return (await this.getNameRecordFromDomainTld(mainDomain)) as NameRecord;
+        return (await this.getNameRecordFromDomainTld(
+            mainDomain,
+        )) as NameRecord;
     }
 
     getParsedAllUserDomainsFromTldUnwrapped(
