@@ -114,9 +114,8 @@ export class NameRecordHeader {
         connection: Connection,
         nameAccountKey: PublicKey[],
     ): Promise<NameRecordHeader[] | []> {
-        let nameRecordAccountInfos = await connection.getMultipleAccountsInfo(
-            nameAccountKey,
-        );
+        let nameRecordAccountInfos =
+            await connection.getMultipleAccountsInfo(nameAccountKey);
 
         let nameRecords: NameRecordHeader[] = [];
 

@@ -2,7 +2,7 @@ import { Connection, PublicKey } from '@solana/web3.js';
 
 import { MainDomain, MainDomainArgs, NameRecordHeader, Record, TldParser, getDomainKey } from '../src';
 
-const RPC_URL = 'https://mainnet.rpcpool.com/';
+const RPC_URL = '';
 const connection = new Connection(RPC_URL);
 const owner = new PublicKey(
     '2EGGxj2qbNAJNgLCPKca8sxZYetyTjnoRspTPjzN2D67',
@@ -19,31 +19,31 @@ describe('tldParser SVM tests', () => {
         expect(ownerRecieved).toStrictEqual(undefined);
     });
 
-    // it('should perform fetching of an owner an nft domain', async () => {
-    //     const parser = new TldParser(connection);
-    //     const domanTld = 'legendary.abc';
-    //     const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
-    //     expect(ownerRecieved).toStrictEqual(owner);
-    // });
+    it('should perform fetching of an owner an nft domain (expired)', async () => {
+        const parser = new TldParser(connection);
+        const domanTld = 'legendary.abc';
+        const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
+        expect(ownerRecieved).toStrictEqual(undefined);
+    });
 
-    // it('should perform fetching of an owner an nft domain', async () => {
-    //     const parser = new TldParser(connection);
-    //     const domanTld = 'miester.abc';
-    //     const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
-    //     expect(ownerRecieved).toStrictEqual(owner);
-    // });
+    it('should perform fetching of an owner an nft domain', async () => {
+        const parser = new TldParser(connection);
+        const domanTld = 'miester.abc';
+        const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
+        expect(ownerRecieved).toStrictEqual(owner);
+    });
     
     it('should perform retrieval of all user domains', async () => {
         const parser = new TldParser(connection);
         const allDomainsReceived = await parser.getAllUserDomains(owner);
-        expect(allDomainsReceived).toHaveLength(57);
+        expect(allDomainsReceived).toHaveLength(79);
     });
 
     it('should perform retrieval of all user domains for poor tld', async () => {
         const parser = new TldParser(connection);
         const tld = 'poor';
         const ownedDomainsReceived = await parser.getAllUserDomainsFromTld(owner, tld);
-        expect(ownedDomainsReceived).toHaveLength(1);
+        expect(ownedDomainsReceived).toHaveLength(2);
     });
 
     it('should perform lookup of owner of the domainTld', async () => {
@@ -64,7 +64,7 @@ describe('tldParser SVM tests', () => {
             createdAt: Uint8Array.from(zeroU64),
             nonTransferable: Uint8Array.from([0]),
             nclass: PublicKey.default.toBuffer(),
-            owner: new PublicKey("Hawr3YEgTc2dTnykUcoBtg5YAYZmZedTxV6qpWtgu9Jp").toBuffer(),
+            owner: new PublicKey("2EGGxj2qbNAJNgLCPKca8sxZYetyTjnoRspTPjzN2D67").toBuffer(),
             parentName: parentAccount.toBuffer()
         });
         nameRecord.isValid = true;
@@ -110,27 +110,28 @@ describe('tldParser SVM tests', () => {
         expect(mainDomain).toMatchObject(expectedMainDomain);
     });
 
-    // it('should perform retrieval parsed domains of all user domains (nfts included)', async () => {
-    //     const parser = new TldParser(connection);
-    //     const allDomainsReceived = await parser.getParsedAllUserDomains(owner);
-    //     expect(allDomainsReceived).toHaveLength(65);
-    // });
+    it('should perform retrieval parsed domains of all user domains (nfts included)', async () => {
+        const parser = new TldParser(connection);
+        const allDomainsReceived = await parser.getParsedAllUserDomains(owner, 100);
+        expect(allDomainsReceived).toHaveLength(88);
+    });
 
-    // it('should perform retrieval parsed domains of all user domains', async () => {
-    //     const parser = new TldParser(connection);
-    //     const allDomainsReceived = await parser.getParsedAllUserDomainsUnwrapped(owner);
-    //     expect(allDomainsReceived).toHaveLength(49);
-    // });
+    it('should perform retrieval parsed domains of all user domains', async () => {
+        const parser = new TldParser(connection);
+        const allDomainsReceived = await parser.getParsedAllUserDomainsUnwrapped(owner);
+        expect(allDomainsReceived).toHaveLength(71);
+    });
 
     it('should perform retrieval parsed domains of all user domains in a particular tld', async () => {
         const parser = new TldParser(connection);
         const allDomainsReceived = await parser.getParsedAllUserDomainsFromTldUnwrapped(owner, 'abc');
-        expect(allDomainsReceived).toHaveLength(4);
+        expect(allDomainsReceived).toHaveLength(5);
     });
 
     it('should perform retrieval parsed nft domains of all user domains in a particular tld', async () => {
         const parser = new TldParser(connection);
         const allDomainsReceived = await parser.getParsedAllUserDomainsFromTld(owner, 'abc');
+        // console.log(allDomainsReceived)
         expect(allDomainsReceived).toHaveLength(15);
     });
 });

@@ -17,6 +17,7 @@ import {
 import { NameRecordHeader } from './state/name-record-header';
 import { Tag } from './types/tag';
 import { NftRecord } from './state/nft-record';
+import { MainDomain } from './state/main-domain';
 
 /**
  * retrieves raw name account
@@ -104,7 +105,7 @@ export async function findOwnedNameAccountsForUser(
     connection: Connection,
     userAccount: PublicKey,
     parentAccount: PublicKey | undefined,
-): Promise<PublicKey[]> {
+) {
     const filters: any = [
         {
             memcmp: {
@@ -129,7 +130,12 @@ export async function findOwnedNameAccountsForUser(
         filters: filters,
     });
 
-    return accounts.map((a: any) => a.pubkey);
+    return accounts.map(a => {
+        return {
+            pubkey: a.pubkey,
+            data: NameRecordHeader.fromAccountInfo(a.account),
+        };
+    });
 }
 
 export function findMainDomain(user: PublicKey) {
@@ -326,11 +332,7 @@ export function delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export const getParsedAllDomainsNftAccountsByOwner = async (
-    owner: PublicKey,
-    connection: Connection,
-    expectedCreator: PublicKey,
-) => {
+export async function getUserNfts(owner: PublicKey, connection: Connection) {
     const { value: splAccounts } =
         await connection.getParsedTokenAccountsByOwner(owner, {
             programId: SPL_TOKEN_PROGRAM_ID,
@@ -347,6 +349,15 @@ export const getParsedAllDomainsNftAccountsByOwner = async (
             const address = t.account?.data?.parsed?.info?.mint;
             return address;
         });
+    return nftAccounts;
+}
+
+export const getParsedAllDomainsNftAccountsByOwner = async (
+    owner: PublicKey,
+    connection: Connection,
+    expectedCreator: PublicKey,
+) => {
+    const nftAccounts = await getUserNfts(owner, connection);
     const ownerDomains = await getOwnedDomains(
         nftAccounts,
         connection,
@@ -356,7 +367,7 @@ export const getParsedAllDomainsNftAccountsByOwner = async (
     return ownerDomains;
 };
 
-const getOwnedDomains = async (
+export const getOwnedDomains = async (
     nftAddresses: string[],
     connection: Connection,
     expectedCreator: PublicKey,
@@ -372,9 +383,8 @@ const getOwnedDomains = async (
                 .map((mint: string) =>
                     findMetadataAddress(new PublicKey(mint)),
                 );
-            const nftsMetadata = await connection.getMultipleAccountsInfo(
-                nftMetadataKeys,
-            );
+            const nftsMetadata =
+                await connection.getMultipleAccountsInfo(nftMetadataKeys);
             for (const nftMetadata of nftsMetadata) {
                 if (nftMetadata) {
                     const verifiedCreatorAddress = new PublicKey(
@@ -407,9 +417,8 @@ const getOwnedDomains = async (
         let nftMetadataKeys = nftAddresses.map((mint: string) =>
             findMetadataAddress(new PublicKey(mint)),
         );
-        const nftsMetadata = await connection.getMultipleAccountsInfo(
-            nftMetadataKeys,
-        );
+        const nftsMetadata =
+            await connection.getMultipleAccountsInfo(nftMetadataKeys);
         for (const nftMetadata of nftsMetadata) {
             if (nftMetadata) {
                 const verifiedCreatorAddress = new PublicKey(
@@ -557,3 +566,171 @@ function dateToU64Buffer(expiryDate: Date): Buffer {
     buffer.writeBigUInt64BE(BigInt(secondsSinceEpoch));
     return buffer;
 }
+
+export const getMultipleMainDomainsChecked = async (
+    connection: Connection,
+    pubkeys: string[],
+): Promise<
+    {
+        pubkey: string;
+        mainDomain: string | undefined;
+        nameAccount: PublicKey | undefined;
+    }[]
+> => {
+    const mainDomainKeys = pubkeys.map(
+        pubkey => findMainDomain(new PublicKey(pubkey))[0],
+    );
+
+    // fetch main domain accounts
+    const mainDomainAccounts =
+        await connection.getMultipleAccountsInfo(mainDomainKeys);
+
+    const mainDomainWithNameAccounts = pubkeys.map((pubkey, index) => {
+        const mainDomainAccount = mainDomainAccounts[index];
+        if (!!mainDomainAccount?.data) {
+            const mainDomainData =
+                MainDomain.fromAccountInfo(mainDomainAccount)[0];
+            const nameAccount = mainDomainData.nameAccount;
+            return {
+                pubkey: pubkey.toString(),
+                nameAccount,
+                mainDomain: mainDomainData.domain + mainDomainData.tld,
+            };
+        }
+        return {
+            pubkey: pubkey.toString(),
+            nameAccount: undefined,
+            mainDomain: undefined,
+        };
+    });
+    // fetch name accounts
+    const nameAccounts = mainDomainWithNameAccounts.map(
+        item => item.nameAccount,
+    );
+    const filteredNameAccountsWithIndex = nameAccounts
+        .map((pk, idx) => (pk ? { pk, idx } : undefined))
+        .filter((x): x is { pk: PublicKey; idx: number } => !!x);
+    const filteredNameAccounts = filteredNameAccountsWithIndex.map(x => x.pk);
+    const nameAccountsInfo =
+        await connection.getMultipleAccountsInfo(filteredNameAccounts);
+
+    // map infoByOriginalIdx
+    const infoByOriginalIdx = new Array<AccountInfo<Buffer> | null>(
+        nameAccounts.length,
+    ).fill(null);
+    filteredNameAccountsWithIndex.forEach((entry, i) => {
+        infoByOriginalIdx[entry.idx] = nameAccountsInfo[i];
+    });
+
+    const result = await Promise.all(
+        mainDomainWithNameAccounts.map(async (item, index) => {
+            const nameAccount = item.nameAccount;
+            const info = infoByOriginalIdx[index];
+            if (!nameAccount || !info) {
+                return { ...item };
+            }
+            const nameAccountData = NameRecordHeader.fromAccountInfo(info);
+            const tld = item.mainDomain?.split('.')[1];
+            const [tldHouseKey] = findTldHouse(tld);
+            const [nameHouseKey] = findNameHouse(tldHouseKey);
+            const [nftRecordKey] = findNftRecord(nameAccount, nameHouseKey);
+            // check if the main domain owner is the nftrecord onchain
+            const isNftRecordOwner =
+                nameAccountData.owner?.toString() === nftRecordKey.toString();
+            if (isNftRecordOwner) {
+                // check if the nft owner is the main domain owner
+                const mintOwner = await getMintOwner(connection, nftRecordKey);
+                if (mintOwner?.toString() != pubkeys[index]) {
+                    return {
+                        pubkey: pubkeys[index].toString(),
+                        nameAccount,
+                        mainDomain: undefined,
+                    };
+                }
+                return { ...item };
+            }
+            // check if the name record owner is the main domain owner
+            if (nameAccountData.owner?.toString() != pubkeys[index]) {
+                return {
+                    pubkey: pubkeys[index].toString(),
+                    nameAccount,
+                    mainDomain: undefined,
+                };
+            }
+            // check if the name record expires at is valid
+            const expiresAtIsValid = nameAccountData.expiresAt.getTime() != 0;
+            if (
+                expiresAtIsValid &&
+                nameAccountData.expiresAt.getTime() < Date.now()
+            ) {
+                return {
+                    pubkey: pubkeys[index].toString(),
+                    nameAccount,
+                    mainDomain: undefined,
+                };
+            }
+            return { ...item };
+        }),
+    );
+    return result;
+};
+
+export const getMainDomainChecked = async (
+    connection: Connection,
+    pubkey: string,
+): Promise<{
+    pubkey: string;
+    mainDomain: string | undefined;
+    nameAccount: PublicKey | undefined;
+}> => {
+    const mainDomainKey = findMainDomain(new PublicKey(pubkey))[0];
+    const mainDomainAccount = await connection.getAccountInfo(mainDomainKey);
+
+    if (!mainDomainAccount?.data) {
+        return { pubkey, nameAccount: undefined, mainDomain: undefined };
+    }
+
+    const mainDomainData = MainDomain.fromAccountInfo(mainDomainAccount)[0];
+    const nameAccount = mainDomainData.nameAccount;
+
+    const nameAccountInfo = await connection.getAccountInfo(nameAccount);
+    if (!nameAccountInfo) {
+        return { pubkey, nameAccount, mainDomain: undefined };
+    }
+
+    const nameAccountData = NameRecordHeader.fromAccountInfo(nameAccountInfo);
+    const tld = mainDomainData.tld;
+    const [tldHouseKey] = findTldHouse(tld);
+    const [nameHouseKey] = findNameHouse(tldHouseKey);
+    const [nftRecordKey] = findNftRecord(nameAccount, nameHouseKey);
+
+    // NFT owner check
+    if (nameAccountData.owner?.toString() === nftRecordKey.toString()) {
+        const mintOwner = await getMintOwner(connection, nftRecordKey);
+        if (mintOwner?.toString() !== pubkey) {
+            return { pubkey, nameAccount, mainDomain: undefined };
+        }
+        return {
+            pubkey,
+            nameAccount,
+            mainDomain: mainDomainData.domain + mainDomainData.tld,
+        };
+    }
+
+    // Name record owner check
+    if (nameAccountData.owner?.toString() !== pubkey) {
+        return { pubkey, nameAccount, mainDomain: undefined };
+    }
+
+    // Expiry check
+    const expiresAtIsValid = nameAccountData.expiresAt.getTime() !== 0;
+    if (expiresAtIsValid && nameAccountData.expiresAt.getTime() < Date.now()) {
+        return { pubkey, nameAccount, mainDomain: undefined };
+    }
+
+    return {
+        pubkey,
+        nameAccount,
+        mainDomain: mainDomainData.domain + mainDomainData.tld,
+    };
+};

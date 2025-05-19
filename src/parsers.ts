@@ -137,6 +137,7 @@ export class TldParser implements ITldParser {
     async getParsedAllUserDomainsFromTldUnwrapped(
         userAccount: PublicKey | string,
         tld: string,
+        concurrency: number = 10,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
     }
@@ -151,6 +152,7 @@ export class TldParser implements ITldParser {
     async getParsedAllUserDomainsFromTld(
         userAccount: PublicKey | string,
         tld: string,
+        concurrency: number = 10,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
     }
@@ -163,6 +165,7 @@ export class TldParser implements ITldParser {
      */
     async getParsedAllUserDomainsUnwrapped(
         userAccount: PublicKey | string,
+        concurrency: number = 10,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
     }
@@ -175,6 +178,7 @@ export class TldParser implements ITldParser {
      */
     async getParsedAllUserDomains(
         userAccount: PublicKey | string,
+        concurrency: number = 10,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
     }
