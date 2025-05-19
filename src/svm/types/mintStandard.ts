@@ -7,29 +7,29 @@
  */
 
 import {
-  combineCodec,
-  getEnumDecoder,
-  getEnumEncoder,
-  type Codec,
-  type Decoder,
-  type Encoder,
+    combineCodec,
+    getEnumDecoder,
+    getEnumEncoder,
+    type Codec,
+    type Decoder,
+    type Encoder,
 } from '@solana/kit';
 
 export enum MintStandard {
-  MetaplexNft,
-  Nifty,
+    MetaplexNft,
+    Nifty,
 }
 
 export type MintStandardArgs = MintStandard;
 
 export function getMintStandardEncoder(): Encoder<MintStandardArgs> {
-  return getEnumEncoder(MintStandard);
+    return getEnumEncoder(MintStandard);
 }
 
 export function getMintStandardDecoder(): Decoder<MintStandard> {
-  return getEnumDecoder(MintStandard);
+    return getEnumDecoder(MintStandard);
 }
 
 export function getMintStandardCodec(): Codec<MintStandardArgs, MintStandard> {
-  return combineCodec(getMintStandardEncoder(), getMintStandardDecoder());
+    return combineCodec(getMintStandardEncoder(), getMintStandardDecoder());
 }

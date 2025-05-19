@@ -163,9 +163,7 @@ export class TldParserEvm implements ITldParser {
         };
     }
 
-    getTldFromParentAccount(
-        parentAccount: Address | string,
-    ): Promise<string> {
+    getTldFromParentAccount(parentAccount: Address | string): Promise<string> {
         throw new Error('Method not implemented.');
     }
 

@@ -1,8 +1,10 @@
 import { fetchMaybeMainDomain, MainDomain } from './state/main-domain';
-import { decodeNameRecordHeader, fetchMaybeNameRecordHeader, getNameRecordHeaderDecoder, NameRecordHeader } from './state/name-record-header';
 import {
-    base58Codec,
-    delay,
+    fetchMaybeNameRecordHeader,
+    getNameRecordHeaderDecoder,
+    NameRecordHeader,
+} from './state/name-record-header';
+import {
     findMainDomain,
     findNameHouse,
     findOwnedNameAccountsForUser,
@@ -25,7 +27,7 @@ import { ITldParser } from '../parsers.interface';
 import { Address, fetchEncodedAccount, Rpc, SolanaRpcApi } from '@solana/kit';
 
 export class TldParserSvm implements ITldParser {
-    connection: Rpc<SolanaRpcApi>
+    connection: Rpc<SolanaRpcApi>;
     constructor(rpc: Rpc<SolanaRpcApi>) {
         this.connection = rpc;
     }
@@ -35,9 +37,7 @@ export class TldParserSvm implements ITldParser {
      *
      * @param userAccount user Address or string
      */
-    async getAllUserDomains(
-        userAccount: Address | string,
-    ): Promise<Address[]> {
+    async getAllUserDomains(userAccount: Address | string): Promise<Address[]> {
         const allDomains = await findOwnedNameAccountsForUser(
             this.connection,
             userAccount as Address,
@@ -150,9 +150,7 @@ export class TldParserSvm implements ITldParser {
      *
      * @param parentAccount parent Address or string
      */
-    async getTldFromParentAccount(
-        parentAccount: Address,
-    ): Promise<string> {
+    async getTldFromParentAccount(parentAccount: Address): Promise<string> {
         const parentNameAccount = await fetchMaybeNameRecordHeader(
             this.connection,
             parentAccount,
@@ -175,7 +173,7 @@ export class TldParserSvm implements ITldParser {
 
         return utf8Codec
             .decode(tldBuffer.subarray(4, 4 + nameLength))
-            .replace(/^\0/, "\0");
+            .replace(/^\0/, '\0');
     }
 
     /**
@@ -205,9 +203,7 @@ export class TldParserSvm implements ITldParser {
         const nameStart = 200;
         const data = reverseLookUpResult.data.data.slice(nameStart);
 
-        return utf8Codec
-            .decode(data)
-            .replace(/^\0/, "\0");
+        return utf8Codec.decode(data).replace(/^\0/, '\0');
     }
 
     /**
@@ -216,15 +212,16 @@ export class TldParserSvm implements ITldParser {
      * @param userAddress user Address or string
      */
     async getMainDomain(userAddress: Address | string): Promise<MainDomain> {
-
-        const [mainDomainAddress] = await findMainDomain(userAddress as Address);
+        const [mainDomainAddress] = await findMainDomain(
+            userAddress as Address,
+        );
         const mainDomain = await fetchMaybeMainDomain(
             this.connection,
             mainDomainAddress,
         );
         if (!mainDomain.exists) {
             throw new Error('Main domain does not exist');
-        };
+        }
         return mainDomain.data;
     }
 
@@ -238,7 +235,7 @@ export class TldParserSvm implements ITldParser {
     async getParsedAllUserDomainsFromTldUnwrapped(
         userAccount: Address | string,
         tld: string,
-        concurrency: number = 10
+        concurrency: number = 10,
     ): Promise<NameAccountAndDomain[]> {
         const limit = pLimit(concurrency);
         const tldName = '.' + tld;
@@ -260,35 +257,45 @@ export class TldParserSvm implements ITldParser {
         let parsedNameAccountsAndDomains: NameAccountAndDomain[] = [];
 
         const batchResults = await Promise.all(
-            Array.from({ length: Math.ceil(allDomainsAddresses.length / MULTIPLE_ACCOUNT_INFO_MAX) }, (_, idx) => {
-                const i = idx * MULTIPLE_ACCOUNT_INFO_MAX;
-                const end = Math.min(i + MULTIPLE_ACCOUNT_INFO_MAX, allDomainsAddresses.length);
-                const batch = allDomainsAddresses.slice(i, end);
-                return limit(async () => {
-                    const batchReverseLookup = await performReverseLookupBatched(
-                        this.connection,
-                        batch,
-                        tldHouse,
+            Array.from(
+                {
+                    length: Math.ceil(
+                        allDomainsAddresses.length / MULTIPLE_ACCOUNT_INFO_MAX,
+                    ),
+                },
+                (_, idx) => {
+                    const i = idx * MULTIPLE_ACCOUNT_INFO_MAX;
+                    const end = Math.min(
+                        i + MULTIPLE_ACCOUNT_INFO_MAX,
+                        allDomainsAddresses.length,
                     );
-                    const domainsWithTldsAndNameAccounts = batchReverseLookup.map(
-                        (domain, index) => {
-                            return {
-                                nameAccount: batch[index],
-                                domain: domain + tldName,
-                            };
-                        },
-                    );
-                    if (domainsWithTldsAndNameAccounts.length > 0) {
-                        domainsWithTldsAndNameAccounts.sort((a, b) =>
-                            a.domain.localeCompare(b.domain, undefined, {
-                                numeric: true,
-                                sensitivity: 'base',
-                            }),
-                        );
-                    }
-                    return domainsWithTldsAndNameAccounts;
-                });
-            })
+                    const batch = allDomainsAddresses.slice(i, end);
+                    return limit(async () => {
+                        const batchReverseLookup =
+                            await performReverseLookupBatched(
+                                this.connection,
+                                batch,
+                                tldHouse,
+                            );
+                        const domainsWithTldsAndNameAccounts =
+                            batchReverseLookup.map((domain, index) => {
+                                return {
+                                    nameAccount: batch[index],
+                                    domain: domain + tldName,
+                                };
+                            });
+                        if (domainsWithTldsAndNameAccounts.length > 0) {
+                            domainsWithTldsAndNameAccounts.sort((a, b) =>
+                                a.domain.localeCompare(b.domain, undefined, {
+                                    numeric: true,
+                                    sensitivity: 'base',
+                                }),
+                            );
+                        }
+                        return domainsWithTldsAndNameAccounts;
+                    });
+                },
+            ),
         );
         parsedNameAccountsAndDomains.push(...batchResults.flat());
         return parsedNameAccountsAndDomains;
@@ -304,7 +311,7 @@ export class TldParserSvm implements ITldParser {
     async getParsedAllUserDomainsFromTld(
         userAccount: Address | string,
         tld: string,
-        concurrency: number = 10
+        concurrency: number = 10,
     ): Promise<NameAccountAndDomain[]> {
         const limit = pLimit(concurrency);
         const tldName = '.' + tld;
@@ -338,34 +345,44 @@ export class TldParserSvm implements ITldParser {
                 limit(async () => ({
                     nameAccount: (await getDomainKey(domain)).pubkey,
                     domain,
-                }))
-            )
+                })),
+            ),
         );
 
         parsedNameAccountsAndDomains.push(...domainsWithTldsAndNameAccounts);
 
         const batchResults = await Promise.all(
-            Array.from({ length: Math.ceil(allDomainsAddresses.length / MULTIPLE_ACCOUNT_INFO_MAX) }, (_, idx) => {
-                const i = idx * MULTIPLE_ACCOUNT_INFO_MAX;
-                const end = Math.min(i + MULTIPLE_ACCOUNT_INFO_MAX, allDomainsAddresses.length);
-                const batch = allDomainsAddresses.slice(i, end);
-                return limit(async () => {
-                    const batchReverseLookup = await performReverseLookupBatched(
-                        this.connection,
-                        batch,
-                        tldHouse,
+            Array.from(
+                {
+                    length: Math.ceil(
+                        allDomainsAddresses.length / MULTIPLE_ACCOUNT_INFO_MAX,
+                    ),
+                },
+                (_, idx) => {
+                    const i = idx * MULTIPLE_ACCOUNT_INFO_MAX;
+                    const end = Math.min(
+                        i + MULTIPLE_ACCOUNT_INFO_MAX,
+                        allDomainsAddresses.length,
                     );
-                    const domainsWithTldsAndNameAccounts = batchReverseLookup.map(
-                        (domain, index) => {
-                            return {
-                                nameAccount: batch[index],
-                                domain: domain + tldName,
-                            };
-                        },
-                    );
-                    return domainsWithTldsAndNameAccounts;
-                });
-            })
+                    const batch = allDomainsAddresses.slice(i, end);
+                    return limit(async () => {
+                        const batchReverseLookup =
+                            await performReverseLookupBatched(
+                                this.connection,
+                                batch,
+                                tldHouse,
+                            );
+                        const domainsWithTldsAndNameAccounts =
+                            batchReverseLookup.map((domain, index) => {
+                                return {
+                                    nameAccount: batch[index],
+                                    domain: domain + tldName,
+                                };
+                            });
+                        return domainsWithTldsAndNameAccounts;
+                    });
+                },
+            ),
         );
         parsedNameAccountsAndDomains.push(...batchResults.flat());
         if (parsedNameAccountsAndDomains.length > 0) {
@@ -391,7 +408,7 @@ export class TldParserSvm implements ITldParser {
      */
     async getParsedAllUserDomainsUnwrapped(
         userAccount: Address | string,
-        concurrency: number = 10
+        concurrency: number = 10,
     ): Promise<NameAccountAndDomain[]> {
         const limit = pLimit(concurrency);
         const allTlds = await getAllTld(this.connection);
@@ -405,52 +422,58 @@ export class TldParserSvm implements ITldParser {
         const allDomainsWithData = allDomainsRaw.map(domain => {
             return {
                 pubkey: domain.pubkey,
-                data: getNameRecordHeaderDecoder().decode(domain.account.data as any)
+                data: getNameRecordHeaderDecoder().decode(
+                    domain.account.data as any,
+                ),
             };
         });
         const tldResults = await Promise.all(
             allTlds.map(({ parentAccount, tld }) =>
-                limit(
-                    async () => {
-                        let tldName = tld.toString();
-                        const [tldHouse] = await findTldHouse(tldName);
-                        let allDomains = allDomainsWithData.filter(domain => domain.data.parentName === parentAccount);
+                limit(async () => {
+                    let tldName = tld.toString();
+                    const [tldHouse] = await findTldHouse(tldName);
+                    let allDomains = allDomainsWithData.filter(
+                        domain => domain.data.parentName === parentAccount,
+                    );
 
-                        let parsedNameAccountsAndDomainsEachTld: NameAccountAndDomain[] = [];
-                        const allDomainsAddresses = allDomains.map(domain => domain.pubkey);
-                        for (
-                            let i = 0;
-                            i < allDomainsAddresses.length;
-                            i += MULTIPLE_ACCOUNT_INFO_MAX
-                        ) {
-                            // await delay(100);
-                            const end = Math.min(
-                                i + MULTIPLE_ACCOUNT_INFO_MAX,
-                                allDomainsAddresses.length,
-                            );
-                            const batch = allDomainsAddresses.slice(i, end);
-                            const batchReverseLookup = await performReverseLookupBatched(
+                    let parsedNameAccountsAndDomainsEachTld: NameAccountAndDomain[] =
+                        [];
+                    const allDomainsAddresses = allDomains.map(
+                        domain => domain.pubkey,
+                    );
+                    for (
+                        let i = 0;
+                        i < allDomainsAddresses.length;
+                        i += MULTIPLE_ACCOUNT_INFO_MAX
+                    ) {
+                        // await delay(100);
+                        const end = Math.min(
+                            i + MULTIPLE_ACCOUNT_INFO_MAX,
+                            allDomainsAddresses.length,
+                        );
+                        const batch = allDomainsAddresses.slice(i, end);
+                        const batchReverseLookup =
+                            await performReverseLookupBatched(
                                 this.connection,
                                 batch,
                                 tldHouse,
                             );
-                            const domainsWithTldsAndNameAccounts = batchReverseLookup.map(
-                                (domain, index) => {
-                                    return {
-                                        nameAccount: batch[index],
-                                        domain: domain + tldName,
-                                    };
-                                },
-                            );
-                            parsedNameAccountsAndDomainsEachTld.push(
-                                ...domainsWithTldsAndNameAccounts,
-                            );
-                        }
-                        return parsedNameAccountsAndDomainsEachTld;
+                        const domainsWithTldsAndNameAccounts =
+                            batchReverseLookup.map((domain, index) => {
+                                return {
+                                    nameAccount: batch[index],
+                                    domain: domain + tldName,
+                                };
+                            });
+                        parsedNameAccountsAndDomainsEachTld.push(
+                            ...domainsWithTldsAndNameAccounts,
+                        );
                     }
-                )
-            ))
-            parsedNameAccountsAndDomains = tldResults.flat();
+                    return parsedNameAccountsAndDomainsEachTld;
+                }),
+            ),
+        );
+        parsedNameAccountsAndDomains = tldResults.flat();
         if (parsedNameAccountsAndDomains.length > 0) {
             parsedNameAccountsAndDomains.sort((a, b) =>
                 a.domain.localeCompare(b.domain, undefined, {
@@ -471,90 +494,99 @@ export class TldParserSvm implements ITldParser {
      */
     async getParsedAllUserDomains(
         userAccount: Address | string,
-        concurrency: number = 10
+        concurrency: number = 10,
     ): Promise<NameAccountAndDomain[]> {
         const limit = pLimit(concurrency);
         const allTlds = await getAllTld(this.connection);
 
         let parsedNameAccountsAndDomains: NameAccountAndDomain[] = [];
 
-        const ownerNfts = await getOwnerNfts(userAccount as Address, this.connection);
+        const ownerNfts = await getOwnerNfts(
+            userAccount as Address,
+            this.connection,
+        );
         const allDomainsRaw = await findOwnedNameAccountsForUser(
             this.connection,
             userAccount as Address,
-            undefined
+            undefined,
         );
 
         const allDomainsWithData = allDomainsRaw.map(domain => {
             return {
                 pubkey: domain.pubkey,
-                data: getNameRecordHeaderDecoder().decode(domain.account.data as any)
+                data: getNameRecordHeaderDecoder().decode(
+                    domain.account.data as any,
+                ),
             };
         });
 
         const tldResults = await Promise.all(
             allTlds.map(({ parentAccount, tld }) =>
-                limit(
-                    async () => {
-                        let tldName = tld.toString();
-                        let allDomains = allDomainsWithData.filter(domain => domain.data.parentName === parentAccount);
-                        let allDomainsAddresses = allDomains.map(domain => domain.pubkey);
+                limit(async () => {
+                    let tldName = tld.toString();
+                    let allDomains = allDomainsWithData.filter(
+                        domain => domain.data.parentName === parentAccount,
+                    );
+                    let allDomainsAddresses = allDomains.map(
+                        domain => domain.pubkey,
+                    );
 
-                        const [tldHouse] = await findTldHouse(tldName);
-                        const [nameHouse] = await findNameHouse(tldHouse);
-                        const allNFTDomains = await getOwnedDomainsFromNfts(
-                            ownerNfts,
-                            this.connection,
-                            nameHouse,
-                        );
-                        const nftDomainsWithTlds = allNFTDomains.map(domain => {
-                            return domain + tldName;
-                        });
-                        const domainsWithTldsAndNameAccounts = await Promise.all(
-                            nftDomainsWithTlds.map(async domain => {
-                                const key = (await getDomainKey(domain)).pubkey;
-                                return {
-                                    nameAccount: key,
-                                    domain,
-                                };
-                            }),
-                        );
+                    const [tldHouse] = await findTldHouse(tldName);
+                    const [nameHouse] = await findNameHouse(tldHouse);
+                    const allNFTDomains = await getOwnedDomainsFromNfts(
+                        ownerNfts,
+                        this.connection,
+                        nameHouse,
+                    );
+                    const nftDomainsWithTlds = allNFTDomains.map(domain => {
+                        return domain + tldName;
+                    });
+                    const domainsWithTldsAndNameAccounts = await Promise.all(
+                        nftDomainsWithTlds.map(async domain => {
+                            const key = (await getDomainKey(domain)).pubkey;
+                            return {
+                                nameAccount: key,
+                                domain,
+                            };
+                        }),
+                    );
 
-                        let parsedNameAccountsAndDomains: NameAccountAndDomain[] = [];
-                        parsedNameAccountsAndDomains.push(
-                            ...domainsWithTldsAndNameAccounts,
-                        );
+                    let parsedNameAccountsAndDomains: NameAccountAndDomain[] =
+                        [];
+                    parsedNameAccountsAndDomains.push(
+                        ...domainsWithTldsAndNameAccounts,
+                    );
 
-                        for (
-                            let i = 0;
-                            i < allDomainsAddresses.length;
-                            i += MULTIPLE_ACCOUNT_INFO_MAX
-                        ) {
-                            const end = Math.min(
-                                i + MULTIPLE_ACCOUNT_INFO_MAX,
-                                allDomainsAddresses.length,
-                            );
-                            const batch = allDomainsAddresses.slice(i, end);
-                            const batchReverseLookup = await performReverseLookupBatched(
+                    for (
+                        let i = 0;
+                        i < allDomainsAddresses.length;
+                        i += MULTIPLE_ACCOUNT_INFO_MAX
+                    ) {
+                        const end = Math.min(
+                            i + MULTIPLE_ACCOUNT_INFO_MAX,
+                            allDomainsAddresses.length,
+                        );
+                        const batch = allDomainsAddresses.slice(i, end);
+                        const batchReverseLookup =
+                            await performReverseLookupBatched(
                                 this.connection,
                                 batch,
                                 tldHouse,
                             );
-                            const domainsWithTldsAndNameAccounts = batchReverseLookup.map(
-                                (domain, index) => {
-                                    return {
-                                        nameAccount: batch[index],
-                                        domain: domain + tldName,
-                                    };
-                                },
-                            );
-                            parsedNameAccountsAndDomains.push(
-                                ...domainsWithTldsAndNameAccounts,
-                            );
-                        }
-                        return parsedNameAccountsAndDomains;
-                    })
-            )
+                        const domainsWithTldsAndNameAccounts =
+                            batchReverseLookup.map((domain, index) => {
+                                return {
+                                    nameAccount: batch[index],
+                                    domain: domain + tldName,
+                                };
+                            });
+                        parsedNameAccountsAndDomains.push(
+                            ...domainsWithTldsAndNameAccounts,
+                        );
+                    }
+                    return parsedNameAccountsAndDomains;
+                }),
+            ),
         );
         parsedNameAccountsAndDomains = tldResults.flat();
         if (parsedNameAccountsAndDomains.length > 0) {

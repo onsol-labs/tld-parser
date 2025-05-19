@@ -1,6 +1,12 @@
 'use strict';
 
-import { Contract, ensNormalize, namehash as ensNamehash, Provider, Typed } from 'ethers';
+import {
+    Contract,
+    ensNormalize,
+    namehash as ensNamehash,
+    Provider,
+    Typed,
+} from 'ethers';
 
 import { HexAddress } from '../types/Address';
 import { EvmChainData } from '../types/EvmChainData';
@@ -99,7 +105,8 @@ async function getUsersNfts(params: {
     userAddress: HexAddress | undefined;
     withTokenUrl?: boolean;
 }): Promise<UserNft[]> {
-    const { config, provider, registrarAddress, userAddress, withTokenUrl } = params;
+    const { config, provider, registrarAddress, userAddress, withTokenUrl } =
+        params;
 
     if (!provider) throw Error('No provider');
     if (!config) throw Error('Not connected to SmartContract');
@@ -119,14 +126,14 @@ async function getUsersNfts(params: {
     const nfts = await contract.getUserNfts(userAddress);
 
     const nftData = await Promise.all(
-        nfts.map(async (tokenId) => {
+        nfts.map(async tokenId => {
             const tokenDataRaw = (await contract.nameData(
                 Typed.uint256(tokenId),
             )) as [unknown, unknown, unknown];
 
-            const tokenUrl = withTokenUrl && (await contract.tokenURI(
-                tokenId,
-            )) as unknown as string;
+            const tokenUrl =
+                withTokenUrl &&
+                ((await contract.tokenURI(tokenId)) as unknown as string);
             return {
                 name: tokenDataRaw[0] as string,
                 expiry: parseInt(tokenDataRaw[1] as string),
@@ -198,9 +205,9 @@ async function getMainDomainRaw(params: {
 
     try {
         const reverseNode = ensNamehash(
-            address.substring(2).toLowerCase() + ".addr.reverse",
+            address.substring(2).toLowerCase() + '.addr.reverse',
         );
-        const resolverHexAddress = "0x741b2C8254495EbB84440A768bE0B5bACA62F6e8";
+        const resolverHexAddress = '0x741b2C8254495EbB84440A768bE0B5bACA62F6e8';
 
         const resolverContract = new Contract(
             resolverHexAddress,

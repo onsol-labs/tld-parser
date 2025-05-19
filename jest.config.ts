@@ -3,7 +3,7 @@ import type { Config } from '@jest/types';
 const config: Config.InitialOptions = {
     verbose: true,
     transform: {
-    "^.+\\.(ts|tsx)$": "ts-jest"
+        '^.+\\.(ts|tsx)$': 'ts-jest',
     },
     rootDir: './tests',
     testRegex: '(.*\\.spec)\\.(jsx?|tsx?)$',

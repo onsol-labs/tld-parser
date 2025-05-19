@@ -7,30 +7,30 @@
  */
 
 import {
-  combineCodec,
-  getEnumDecoder,
-  getEnumEncoder,
-  type Codec,
-  type Decoder,
-  type Encoder,
+    combineCodec,
+    getEnumDecoder,
+    getEnumEncoder,
+    type Codec,
+    type Decoder,
+    type Encoder,
 } from '@solana/kit';
 
 export enum Tag {
-  Uninitialized,
-  ActiveRecord,
-  InactiveRecord,
+    Uninitialized,
+    ActiveRecord,
+    InactiveRecord,
 }
 
 export type TagArgs = Tag;
 
 export function getTagEncoder(): Encoder<TagArgs> {
-  return getEnumEncoder(Tag);
+    return getEnumEncoder(Tag);
 }
 
 export function getTagDecoder(): Decoder<Tag> {
-  return getEnumDecoder(Tag);
+    return getEnumDecoder(Tag);
 }
 
 export function getTagCodec(): Codec<TagArgs, Tag> {
-  return combineCodec(getTagEncoder(), getTagDecoder());
+    return combineCodec(getTagEncoder(), getTagDecoder());
 }

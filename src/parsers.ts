@@ -20,9 +20,12 @@ import { Address, Rpc, SolanaRpcApi } from '@solana/kit';
  * The TldParser for multiple chains will be implemented, and Solana integration will remain unchanged without any breaking modifications.
  */
 export class TldParser implements ITldParser {
-    connection: Rpc<SolanaRpcApi>  | Provider;
+    connection: Rpc<SolanaRpcApi> | Provider;
 
-    constructor(connection: Rpc<SolanaRpcApi> | NetworkWithRpc, chain?: string) {
+    constructor(
+        connection: Rpc<SolanaRpcApi> | NetworkWithRpc,
+        chain?: string,
+    ) {
         if (new.target === TldParser) {
             return TldParser.createParser(connection, chain);
         }

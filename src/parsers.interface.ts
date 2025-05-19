@@ -6,7 +6,7 @@ import { NameRecordHeader } from './svm/state/name-record-header';
 import { NameRecord } from 'evm/types/NameRecordHeader';
 import { Address, Rpc, SolanaRpcApi } from '@solana/kit';
 
-export interface ITldParser {    
+export interface ITldParser {
     connection: Rpc<SolanaRpcApi> | Provider;
     /**
      * retrieves all nameAccounts for any user.
