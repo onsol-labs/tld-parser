@@ -52,7 +52,11 @@
   },
   "dependencies": {
     "@ethersproject/sha2": "^5.7.0",
-    "@metaplex-foundation/beet-solana": "^0.4.0"
+    "@metaplex-foundation/beet-solana": "^0.4.0",
+    "@solana-program/token": "^0.5.1",
+    "@solana/kit": "^2.1.1",
+    "p-limit": "^5.0.0",
+    "yocto-queue": "^1.2.1"
   },
   "devDependencies": {
     "@jest/types": "^29.3.1",

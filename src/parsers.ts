@@ -1,4 +1,3 @@
-import { Connection, PublicKey } from '@solana/web3.js';
 import { Provider } from 'ethers';
 import { TldParserEvm } from './evm/parsers';
 import { AddressAndDomain } from './evm/types/AddressAndDomain';
@@ -9,6 +8,7 @@ import { TldParserSvm } from './svm/parsers';
 import { MainDomain } from './svm/state/main-domain';
 import { NameRecordHeader } from './svm/state/name-record-header';
 import { NameRecord } from 'evm';
+import { Address, Rpc, SolanaRpcApi } from '@solana/kit';
 
 /**
  * TldParser class
@@ -20,16 +20,16 @@ import { NameRecord } from 'evm';
  * The TldParser for multiple chains will be implemented, and Solana integration will remain unchanged without any breaking modifications.
  */
 export class TldParser implements ITldParser {
-    connection: Connection | Provider;
+    connection: Rpc<SolanaRpcApi>  | Provider;
 
-    constructor(connection: Connection | NetworkWithRpc, chain?: string) {
+    constructor(connection: Rpc<SolanaRpcApi> | NetworkWithRpc, chain?: string) {
         if (new.target === TldParser) {
             return TldParser.createParser(connection, chain);
         }
     }
 
     private static createParser(
-        connection: Connection | NetworkWithRpc,
+        connection: Rpc<SolanaRpcApi> | NetworkWithRpc,
         chain?: string,
     ): ITldParser {
         switch (chain?.toLowerCase()) {
@@ -38,7 +38,7 @@ export class TldParser implements ITldParser {
             case 'termina':
             case 'solana':
             case undefined:
-                return new TldParserSvm(connection as Connection);
+                return new TldParserSvm(connection as Rpc<SolanaRpcApi>);
             case 'monad':
                 return new TldParserEvm(connection as NetworkWithRpc);
             default:
@@ -52,8 +52,8 @@ export class TldParser implements ITldParser {
      * @param userAccount user publickey or string
      */
     async getAllUserDomains(
-        userAccount: PublicKey | string,
-    ): Promise<PublicKey[] | NameRecord[]> {
+        userAccount: Address | string,
+    ): Promise<Address[] | NameRecord[]> {
         throw new Error('Method not implemented.');
     }
 
@@ -64,9 +64,9 @@ export class TldParser implements ITldParser {
      * @param tld tld to be retrieved from
      */
     async getAllUserDomainsFromTld(
-        userAccount: PublicKey | string,
+        userAccount: Address | string,
         tld: string,
-    ): Promise<PublicKey[] | NameRecord[]> {
+    ): Promise<Address[] | NameRecord[]> {
         throw new Error('Method not implemented.');
     }
 
@@ -77,7 +77,7 @@ export class TldParser implements ITldParser {
      */
     async getOwnerFromDomainTld(
         domainTld: string,
-    ): Promise<PublicKey | undefined | string> {
+    ): Promise<Address | undefined | string> {
         throw new Error('Method not implemented.');
     }
 
@@ -98,7 +98,7 @@ export class TldParser implements ITldParser {
      * @param parentAccount parent publickey or string
      */
     async getTldFromParentAccount(
-        parentAccount: PublicKey | string,
+        parentAccount: Address | string,
     ): Promise<string> {
         throw new Error('Method not implemented.');
     }
@@ -110,8 +110,8 @@ export class TldParser implements ITldParser {
      * @param parentAccountOwner parent Owner or string (TldHouse)
      */
     async reverseLookupNameAccount(
-        nameAccount: PublicKey | string,
-        parentAccountOwner: PublicKey | string,
+        nameAccount: Address | string,
+        parentAccountOwner: Address | string,
     ): Promise<string> {
         throw new Error('Method not implemented.');
     }
@@ -122,7 +122,7 @@ export class TldParser implements ITldParser {
      * @param userAddress user publickey or string
      */
     async getMainDomain(
-        userAddress: PublicKey | string,
+        userAddress: Address | string,
     ): Promise<MainDomain | NameRecord> {
         throw new Error('Method not implemented.');
     }
@@ -135,7 +135,7 @@ export class TldParser implements ITldParser {
      * @param tld tld to be retrieved from
      */
     async getParsedAllUserDomainsFromTldUnwrapped(
-        userAccount: PublicKey | string,
+        userAccount: Address | string,
         tld: string,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
@@ -149,7 +149,7 @@ export class TldParser implements ITldParser {
      * @param tld tld to be retrieved from
      */
     async getParsedAllUserDomainsFromTld(
-        userAccount: PublicKey | string,
+        userAccount: Address | string,
         tld: string,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
@@ -162,7 +162,7 @@ export class TldParser implements ITldParser {
      * @param userAccount user publickey or string
      */
     async getParsedAllUserDomainsUnwrapped(
-        userAccount: PublicKey | string,
+        userAccount: Address | string,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
     }
@@ -174,7 +174,7 @@ export class TldParser implements ITldParser {
      * @param userAccount user publickey or string
      */
     async getParsedAllUserDomains(
-        userAccount: PublicKey | string,
+        userAccount: Address | string,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
     }

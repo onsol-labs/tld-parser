@@ -1,12 +1,10 @@
-import { Connection, PublicKey } from '@solana/web3.js';
 import { ensNormalize, EnsPlugin, JsonRpcProvider, Provider } from 'ethers';
-
 import { ITldParser } from '../parsers.interface';
 import { MainDomain, NameAccountAndDomain, NameRecordHeader } from '../svm';
 import { registrarFetchers } from './fetchers/registrar.fetchers';
 import { registryFetchers } from './fetchers/registry.fetchers';
 import { rootFetchers, TLD } from './fetchers/root.fetchers';
-import { Address, isValidAddress } from './types/Address';
+import { HexAddress, isValidAddress } from './types/Address';
 import { AddressAndDomain } from './types/AddressAndDomain';
 import { EvmChainData } from './types/EvmChainData';
 import {
@@ -16,12 +14,13 @@ import {
     NetworkWithRpc,
 } from './utils';
 import { NameRecord } from './types/NameRecordHeader';
+import { Address } from '@solana/kit';
 
 export class TldParserEvm implements ITldParser {
     connection: Provider;
     private config: EvmChainData;
 
-    constructor(settings?: Connection | NetworkWithRpc) {
+    constructor(settings?: NetworkWithRpc) {
         if (settings instanceof NetworkWithRpc) {
             const chainId = parseInt(settings.chainId.toString());
             const config = configOfEvmChainId(chainId);
@@ -83,7 +82,7 @@ export class TldParserEvm implements ITldParser {
     async getAllUserDomainsFromTld(
         userAccount: string,
         tld: string,
-    ): Promise<PublicKey[] | NameRecord[]> {
+    ): Promise<Address[] | NameRecord[]> {
         const isValidAddr = isValidAddress(userAccount as string);
         if (!isValidAddr) {
             throw new Error(`Invalid address for EVM chain: ${userAccount}`);
@@ -116,12 +115,12 @@ export class TldParserEvm implements ITldParser {
 
     async getOwnerFromDomainTld(
         domainTld: string,
-    ): Promise<PublicKey | undefined | string> {
+    ): Promise<Address | undefined | string> {
         const node = ansNamehash(domainTld);
         const owner = await registryFetchers.getDomainOwner({
             config: this.config,
             provider: this.connection,
-            registryAddress: this.config.registryContractAddress as Address,
+            registryAddress: this.config.registryContractAddress as HexAddress,
             node,
         });
 
@@ -136,7 +135,7 @@ export class TldParserEvm implements ITldParser {
         const recordData = await registryFetchers.getRecordData({
             config: this.config,
             provider: this.connection,
-            registryAddress: this.config.registryContractAddress as Address,
+            registryAddress: this.config.registryContractAddress as HexAddress,
             node,
         });
 
@@ -150,7 +149,7 @@ export class TldParserEvm implements ITldParser {
         const nftData = await registrarFetchers.getUserNftData({
             config: this.config,
             provider: this.connection,
-            registrarAddress: tldData.registrar as Address,
+            registrarAddress: tldData.registrar,
             domain: domainTld,
         });
 
@@ -165,20 +164,20 @@ export class TldParserEvm implements ITldParser {
     }
 
     getTldFromParentAccount(
-        parentAccount: PublicKey | string,
+        parentAccount: Address | string,
     ): Promise<string> {
         throw new Error('Method not implemented.');
     }
 
     reverseLookupNameAccount(
-        nameAccount: PublicKey | string,
-        parentAccountOwner: PublicKey | string,
+        nameAccount: Address | string,
+        parentAccountOwner: Address | string,
     ): Promise<string> {
         throw new Error('Method not implemented.');
     }
 
     async getMainDomain(
-        userAddress: PublicKey | string,
+        userAddress: Address | string,
     ): Promise<MainDomain | NameRecord> {
         const isValidAddr = isValidAddress(userAddress as string);
         if (!isValidAddr) {
@@ -187,8 +186,8 @@ export class TldParserEvm implements ITldParser {
 
         const mainDomain = await registrarFetchers.getMainDomainRaw({
             provider: this.connection,
-            address: userAddress as Address,
-            rootAddress: this.config.rootContractAddress as Address,
+            address: userAddress as HexAddress,
+            rootAddress: this.config.rootContractAddress as HexAddress,
         });
 
         if (!mainDomain) {
@@ -200,14 +199,14 @@ export class TldParserEvm implements ITldParser {
     }
 
     getParsedAllUserDomainsFromTldUnwrapped(
-        userAccount: PublicKey | string,
+        userAccount: Address | string,
         tld: string,
     ): Promise<NameAccountAndDomain[]> {
         throw new Error('Method not implemented.');
     }
 
     async getParsedAllUserDomainsFromTld(
-        userAccount: PublicKey | string,
+        userAccount: Address | string,
         tld: string,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         const isValidAddr = isValidAddress(userAccount as string);
@@ -237,13 +236,13 @@ export class TldParserEvm implements ITldParser {
     }
 
     getParsedAllUserDomainsUnwrapped(
-        userAccount: PublicKey | string,
+        userAccount: Address | string,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         throw new Error('Method not implemented.');
     }
 
     async getParsedAllUserDomains(
-        userAccount: PublicKey | string,
+        userAccount: Address | string,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
         const isValidAddr = isValidAddress(userAccount as string);
         if (!isValidAddr) {
@@ -280,8 +279,8 @@ export class TldParserEvm implements ITldParser {
         const nftData = await registrarFetchers.getUsersNfts({
             config: this.config,
             provider: this.connection,
-            registrarAddress: registrar as Address,
-            userAddress: userAccount as Address,
+            registrarAddress: registrar as HexAddress,
+            userAddress: userAccount as HexAddress,
         });
 
         return nftData.map(nft => {

@@ -1,174 +1,226 @@
-import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
-import { BinaryReader, deserializeUnchecked, Schema } from 'borsh';
+import {
+    assertAccountExists,
+    assertAccountsExist,
+    decodeAccount,
+    fetchEncodedAccount,
+    fetchEncodedAccounts,
+    fixDecoderSize,
+    fixEncoderSize,
+    getAddressDecoder,
+    getAddressEncoder,
+    getBooleanDecoder,
+    getBooleanEncoder,
+    getBytesDecoder,
+    getBytesEncoder,
+    getStructDecoder,
+    getStructEncoder,
+    getU64Decoder,
+    getU64Encoder,
+    transformEncoder,
+    transformDecoder,
+    type Account,
+    type Address,
+    type Decoder,
+    type EncodedAccount,
+    type Encoder,
+    type FetchAccountConfig,
+    type FetchAccountsConfig,
+    type MaybeAccount,
+    type MaybeEncodedAccount,
+    type ReadonlyUint8Array,
+  } from '@solana/kit';
+import { Buffer } from 'buffer';
 
-/**
- * Holds the data for the {@link NameRecordHeader} Account and provides de/serialization
- * functionality for that data
- */
-export class NameRecordHeader {
-    constructor(obj: {
-        parentName: Uint8Array;
-        owner: Uint8Array;
-        nclass: Uint8Array;
-        expiresAt: Uint8Array;
-        createdAt: Uint8Array;
-        nonTransferable: Uint8Array;
-    }) {
-        this.parentName = new PublicKey(obj.parentName);
-        this.nclass = new PublicKey(obj.nclass);
-        this.expiresAt = new Date(
-            new BinaryReader(Buffer.from(obj.expiresAt)).readU64().toNumber() *
-                1000,
-        );
-        this.createdAt = new Date(
-            new BinaryReader(Buffer.from(obj.createdAt)).readU64().toNumber() *
-                1000,
-        );
-        this.nonTransferable = obj.nonTransferable[0] !== 0;
-        // grace period  = 45 days * 24 hours * 60 minutes * 60 seconds * 1000 millie seconds = 3_888_000 seconds
-        const gracePeriod = 45 * 24 * 60 * 60 * 1000;
-        this.isValid =
-            new BinaryReader(Buffer.from(obj.expiresAt))
-                .readU64()
-                .toNumber() === 0
-                ? true
-                : this.expiresAt.getTime() + gracePeriod >
-                  new Date(Date.now()).getTime();
-        this.owner = this.isValid ? new PublicKey(obj.owner) : undefined;
-    }
-
-    parentName: PublicKey;
-    owner: PublicKey | undefined;
-    nclass: PublicKey;
+  
+  export const NAME_RECORD_HEADER_DISCRIMINATOR = new Uint8Array([
+    68, 72, 88, 44, 15, 167, 103, 243,
+  ]);
+  
+  export function getNameRecordHeaderDiscriminatorBytes() {
+    return fixEncoderSize(getBytesEncoder(), 8).encode(
+      NAME_RECORD_HEADER_DISCRIMINATOR
+    );
+  }
+  
+  export type NameRecordHeader = {
+    discriminator: ReadonlyUint8Array;
+    parentName: Address;
+    /**
+     * The owner of the record. If the record is invalid, this will be undefined.
+     */
+    owner: Address | undefined;
+    nclass: Address;
+    /**
+     * Expiry date of the record.
+     */
     expiresAt: Date;
+    /**
+     * Creation date of the record.
+     */
     createdAt: Date;
     nonTransferable: boolean;
-    isValid: boolean;
-    data: Buffer | undefined;
-
-    static DISCRIMINATOR = [68, 72, 88, 44, 15, 167, 103, 243];
-    static HASH_PREFIX = 'ALT Name Service';
-
     /**
-     * NameRecordHeader Schema across all alt name service accounts
+     * Whether the record is valid (not expired or otherwise invalidated).
+     * This is a runtime-only property and is not serialized on-chain.
      */
-    static schema: Schema = new Map([
-        [
-            NameRecordHeader,
-            {
-                kind: 'struct',
-                fields: [
-                    ['discriminator', [8]],
-                    ['parentName', [32]],
-                    ['owner', [32]],
-                    ['nclass', [32]],
-                    ['expiresAt', [8]],
-                    ['createdAt', [8]],
-                    ['nonTransferable', [1]],
-                    ['padding', [79]],
-                ],
-            },
-        ],
-    ]);
-
+    isValid?: boolean;
     /**
-     * Returns the minimum size of a {@link Buffer} holding the serialized data of
-     * {@link NameRecordHeader}
+     * Optional data buffer associated with the record.
+     * This is a runtime-only property and is not serialized on-chain.
      */
-    static get byteSize() {
-        return 8 + 32 + 32 + 32 + 8 + 8 + 1 + 79;
+    data?: Buffer;
+  };
+
+  
+  export type NameRecordHeaderArgs = {
+    parentName: Address;
+    owner: Address;
+    nclass: Address;
+    expiresAt: number | bigint | Date;
+    createdAt: number | bigint | Date;
+    nonTransferable: boolean;
+    data?: Buffer;
+    isValid?: boolean;
+  };
+  
+  export type NameRecordHeaderRawArgs = {
+    parentName: Address;
+    owner: Address;
+    nclass: Address;
+    expiresAt: number | bigint;
+    createdAt: number | bigint;
+    nonTransferable: boolean;
+  };
+  
+  export function getNameRecordHeaderEncoder(): Encoder<NameRecordHeaderRawArgs> {
+    return transformEncoder(
+      getStructEncoder([
+        ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
+        ['parentName', getAddressEncoder()],
+        ['owner', getAddressEncoder()],
+        ['nclass', getAddressEncoder()],
+        ['expiresAt', getU64Encoder()],
+        ['createdAt', getU64Encoder()],
+        ['nonTransferable', getBooleanEncoder()],
+      ]),
+      (value) => ({ ...value, discriminator: NAME_RECORD_HEADER_DISCRIMINATOR })
+    );
+  }
+  
+  export function getNameRecordHeaderDecoder(): Decoder<NameRecordHeader> {
+  // Grace period = 45 days * 24 hours * 60 minutes * 60 seconds * 1000 ms
+  const GRACE_PERIOD_MS = 45 * 24 * 60 * 60 * 1000;
+  return transformDecoder(
+    getStructDecoder([
+      ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
+      ['parentName', getAddressDecoder()],
+      ['owner', getAddressDecoder()],
+      ['nclass', getAddressDecoder()],
+      ['expiresAt', getU64Decoder()],
+      ['createdAt', getU64Decoder()],
+      ['nonTransferable', getBooleanDecoder()],
+    ]),
+    (decoded, bytes, offset) => {
+      // Compute isValid like the old logic
+      const expiresAtMs = decoded.expiresAt === 0n ? 0 : Number(decoded.expiresAt) * 1000;
+      const nowMs = Date.now();
+      const isValid = decoded.expiresAt === 0n
+        ? true
+        : expiresAtMs + GRACE_PERIOD_MS > nowMs;
+      const expiresAt = new Date(expiresAtMs);
+      const createdAtMs = decoded.createdAt === 0n ? 0 : Number(decoded.createdAt) * 1000;
+      const createdAt = new Date(createdAtMs);
+      // If there are trailing bytes, treat them as the data buffer
+      const data = (bytes.length > offset) ? Buffer.from(bytes.slice(offset)) : undefined;
+      const owner = isValid ? decoded.owner : undefined;
+      return {
+        ...decoded,
+        expiresAt,
+        createdAt,
+        isValid,
+        data,
+        owner,
+      };
     }
-
-    /**
-     * Retrieves the account info from the provided address and deserializes
-     * the {@link NameRecordHeader} from its data.
-     */
-    public static async fromAccountAddress(
-        connection: Connection,
-        nameAccountKey: PublicKey,
-    ): Promise<NameRecordHeader | undefined> {
-        const nameAccount = await connection.getAccountInfo(
-            nameAccountKey,
-            'confirmed',
-        );
-        if (!nameAccount) {
-            return undefined;
-        }
-
-        const res: NameRecordHeader = deserializeUnchecked(
-            this.schema,
-            NameRecordHeader,
-            nameAccount.data,
-        );
-
-        res.data = nameAccount.data?.subarray(this.byteSize);
-
-        return res;
-    }
-
-    /**
-     * Retrieves the account infos from the multiple name accounts
-     * the {@link NameRecordHeader} from its data.
-     */
-    public static async fromMultipileAccountAddresses(
-        connection: Connection,
-        nameAccountKey: PublicKey[],
-    ): Promise<NameRecordHeader[] | []> {
-        let nameRecordAccountInfos = await connection.getMultipleAccountsInfo(
-            nameAccountKey,
-        );
-
-        let nameRecords: NameRecordHeader[] = [];
-
-        nameRecordAccountInfos.forEach(value => {
-            if (!value) {
-                nameRecords.push(undefined);
-                return;
-            }
-            let nameRecordData = this.fromAccountInfo(value);
-            if (!nameRecordData) {
-                nameRecords.push(undefined);
-                return;
-            }
-            nameRecords.push(nameRecordData);
-        });
-
-        return nameRecords;
-    }
-
-    /**
-     * Retrieves the account info from the provided data and deserializes
-     * the {@link NameRecordHeader} from its data.
-     */
-    public static fromAccountInfo(
-        nameAccountAccountInfo: AccountInfo<Buffer>,
-    ): NameRecordHeader {
-        const res: NameRecordHeader = deserializeUnchecked(
-            this.schema,
-            NameRecordHeader,
-            nameAccountAccountInfo.data,
-        );
-        res.data = nameAccountAccountInfo.data?.subarray(this.byteSize);
-        return res;
-    }
-
-    /**
-     * Returns a readable version of {@link NameRecordHeader} properties
-     * and can be used to convert to JSON and/or logging
-     */
-    pretty() {
-        const indexOf0 = this.data.indexOf(0x00);
-        return {
-            parentName: this.parentName.toBase58(),
-            owner: this.owner?.toBase58(),
-            nclass: this.nclass.toBase58(),
-            expiresAt: this.expiresAt,
-            createdAt: this.createdAt,
-            nonTransferable: this.nonTransferable,
-            isValid: this.isValid,
-            data: this.isValid
-                ? this.data.subarray(0, indexOf0).toString()
-                : undefined,
-        };
-    }
+  );
 }
+
+
+// cannot be combined since data has to be manipulated.
+//   export function getNameRecordHeaderCodec(): Codec<
+//     NameRecordHeaderRawArgs,
+//     NameRecordHeader
+//   > {
+//     return combineCodec(
+//       getNameRecordHeaderEncoder(),
+//       getNameRecordHeaderDecoder()
+//     );
+//   }
+  
+  export function decodeNameRecordHeader<TAddress extends string = string>(
+    encodedAccount: EncodedAccount<TAddress>
+  ): Account<NameRecordHeader, TAddress>;
+  export function decodeNameRecordHeader<TAddress extends string = string>(
+    encodedAccount: MaybeEncodedAccount<TAddress>
+  ): MaybeAccount<NameRecordHeader, TAddress>;
+  export function decodeNameRecordHeader<TAddress extends string = string>(
+    encodedAccount: EncodedAccount<TAddress> | MaybeEncodedAccount<TAddress>
+  ):
+    | Account<NameRecordHeader, TAddress>
+    | MaybeAccount<NameRecordHeader, TAddress> {
+    return decodeAccount(
+      encodedAccount as MaybeEncodedAccount<TAddress>,
+      getNameRecordHeaderDecoder()
+    );
+  }
+  
+  export async function fetchNameRecordHeader<TAddress extends string = string>(
+    rpc: Parameters<typeof fetchEncodedAccount>[0],
+    address: Address<TAddress>,
+    config?: FetchAccountConfig
+  ): Promise<Account<NameRecordHeader, TAddress>> {
+    const maybeAccount = await fetchMaybeNameRecordHeader(rpc, address, config);
+    assertAccountExists(maybeAccount);
+    return maybeAccount;
+  }
+  
+  export async function fetchMaybeNameRecordHeader<
+    TAddress extends string = string,
+  >(
+    rpc: Parameters<typeof fetchEncodedAccount>[0],
+    address: Address<TAddress>,
+    config?: FetchAccountConfig
+  ): Promise<MaybeAccount<NameRecordHeader, TAddress>> {
+    const maybeAccount = await fetchEncodedAccount(rpc, address, config);
+    return decodeNameRecordHeader(maybeAccount);
+  }
+  
+  export async function fetchAllNameRecordHeader(
+    rpc: Parameters<typeof fetchEncodedAccounts>[0],
+    addresses: Array<Address>,
+    config?: FetchAccountsConfig
+  ): Promise<Account<NameRecordHeader>[]> {
+    const maybeAccounts = await fetchAllMaybeNameRecordHeader(
+      rpc,
+      addresses,
+      config
+    );
+    assertAccountsExist(maybeAccounts);
+    return maybeAccounts;
+  }
+  
+  export async function fetchAllMaybeNameRecordHeader(
+    rpc: Parameters<typeof fetchEncodedAccounts>[0],
+    addresses: Array<Address>,
+    config?: FetchAccountsConfig
+  ): Promise<MaybeAccount<NameRecordHeader>[]> {
+    const maybeAccounts = await fetchEncodedAccounts(rpc, addresses, config);
+    return maybeAccounts.map((maybeAccount) =>
+      decodeNameRecordHeader(maybeAccount)
+    );
+  }
+  
+  export function getNameRecordHeaderSize(): number {
+    return 200;
+  }
+  

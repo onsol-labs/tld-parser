@@ -2,12 +2,12 @@
 
 import { Contract, Provider } from 'ethers';
 
-import { Address } from '../types/Address';
+import { HexAddress } from '../types/Address';
 import { EvmChainData } from '../types/EvmChainData';
 
 export type TLD = {
-    controller: Address;
-    registrar: Address;
+    controller: HexAddress;
+    registrar: HexAddress;
     tld: string;
     name: string;
     symbol: string;
@@ -26,13 +26,13 @@ export type PriceSchema = {
 
 export type SplitSchema = {
     percentage: number;
-    recipient: Address;
+    recipient: HexAddress;
 };
 
 async function getRegistryAddress(params: {
     config: EvmChainData;
     provider: Provider;
-}): Promise<Address> {
+}): Promise<HexAddress> {
     const { provider, config } = params;
 
     if (!provider) throw Error('No provider');
@@ -73,8 +73,8 @@ async function getTldData(params: {
         tldDataRaw;
 
     return {
-        controller: controller as Address,
-        registrar: registrar as Address,
+        controller: controller as HexAddress,
+        registrar: registrar as HexAddress,
         tld: tld as string,
         name: name as string,
         symbol: symbol as string,
@@ -117,8 +117,8 @@ async function getTlds(params: {
             tldRaw;
 
         return {
-            controller: controller as Address,
-            registrar: registrar as Address,
+            controller: controller as HexAddress,
+            registrar: registrar as HexAddress,
             tld: tld as string,
             name: name as string,
             symbol: symbol as string,

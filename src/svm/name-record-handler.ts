@@ -1,5 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
-
+import { Address } from '@solana/kit';
 import {
     getHashedName,
     getNameAccountKeyWithBump,
@@ -60,7 +59,7 @@ export const getDomainKey = async (domainTld: string, record = false) => {
     return { ...result, isSub: false, parent: undefined };
 };
 
-const _getNameAccount = async (name: string, parent?: PublicKey) => {
+const _getNameAccount = async (name: string, parent?: Address) => {
     if (!parent) {
         parent = await getOriginNameAccountKey();
     }
@@ -69,4 +68,4 @@ const _getNameAccount = async (name: string, parent?: PublicKey) => {
     return { pubkey, hashed };
 };
 
-export type NameAccountAndDomain = { nameAccount: PublicKey; domain: string };
+export type NameAccountAndDomain = { nameAccount: Address; domain: string };

@@ -1,6 +1,6 @@
-import { Address } from './Address';
+import { HexAddress } from './Address';
 
 export type AddressAndDomain = {
-    address: Address;
+    address: HexAddress;
     domain: string;
 };

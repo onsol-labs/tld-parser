@@ -2,12 +2,12 @@
 
 import { Contract, Provider } from 'ethers';
 
-import { Address } from '../types/Address';
+import { HexAddress } from '../types/Address';
 import { EvmChainData } from '../types/EvmChainData';
 
 type RecordData = {
-    owner: Address;
-    resolver: Address;
+    owner: HexAddress;
+    resolver: HexAddress;
     ttl: bigint;
 };
 
@@ -15,8 +15,8 @@ async function getDomainOwner(params: {
     node: string;
     config: EvmChainData;
     provider: Provider;
-    registryAddress: Address | undefined;
-}): Promise<Address> {
+    registryAddress: HexAddress | undefined;
+}): Promise<HexAddress> {
     const { node, config, provider, registryAddress } = params;
     if (!provider) throw Error('No provider');
     if (!config) throw Error('Not connected to SmartContract');
@@ -36,7 +36,7 @@ async function getRecordData(params: {
     node: string;
     config: EvmChainData;
     provider: Provider;
-    registryAddress: Address | undefined;
+    registryAddress: HexAddress | undefined;
 }): Promise<RecordData> {
     const { node, config, provider, registryAddress } = params;
     if (!provider) throw Error('No provider');
