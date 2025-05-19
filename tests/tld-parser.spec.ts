@@ -1,6 +1,6 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 
-import { MainDomain, MainDomainArgs, NameRecordHeader, Record, TldParser, getDomainKey } from '../src';
+import { MainDomain, MainDomainArgs, NameRecordHeader, Record, TldParser, getDomainKey, getMainDomainChecked, getMultipleMainDomainsChecked } from '../src';
 
 const RPC_URL = '';
 const connection = new Connection(RPC_URL);
@@ -32,7 +32,7 @@ describe('tldParser SVM tests', () => {
         const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
         expect(ownerRecieved).toStrictEqual(owner);
     });
-    
+
     it('should perform retrieval of all user domains', async () => {
         const parser = new TldParser(connection);
         const allDomainsReceived = await parser.getAllUserDomains(owner);
@@ -134,4 +134,24 @@ describe('tldParser SVM tests', () => {
         // console.log(allDomainsReceived)
         expect(allDomainsReceived).toHaveLength(15);
     });
+
+    it('should perform retrieval of user main domain checked', async () => {
+        const mainDomain = await getMainDomainChecked(
+            connection,
+            owner.toString()
+        )
+        expect(mainDomain).toBeDefined();
+    })
+
+    it('should perform retrieval of multiple user main domains checked', async () => {
+        const mainDomain = await getMultipleMainDomainsChecked(
+            connection,
+            [
+                owner.toString(),
+                PublicKey.default.toString()
+            ]
+        )
+        // console.log(mainDomain)
+        expect(mainDomain).toBeDefined();
+    })
 });

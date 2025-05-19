@@ -1,11 +1,63 @@
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
-import { BinaryReader, deserializeUnchecked, Schema } from 'borsh';
+import { deserialize, Schema } from 'borsh';
+import { ROOT_ANS_PUBLIC_KEY } from '../constants';
 
 /**
  * Holds the data for the {@link NameRecordHeader} Account and provides de/serialization
  * functionality for that data
  */
 export class NameRecordHeader {
+    // only for normal domains, tld name record might not be working.
+    static async create(
+        obj: {
+            parentName: Uint8Array;
+            owner: Uint8Array;
+            nclass: Uint8Array;
+            expiresAt: Uint8Array;
+            createdAt: Uint8Array;
+            nonTransferable: Uint8Array;
+        },
+        connection: Connection,
+        parentNameRecord?: NameRecordHeader,
+    ): Promise<NameRecordHeader> {
+        const instance = new NameRecordHeader(obj);
+        if (!parentNameRecord) {
+            await instance.initializeParentNameRecordHeader(connection);
+        } else {
+            instance.updateGracePeriod(parentNameRecord);
+        }
+        return instance;
+    }
+
+    async initializeParentNameRecordHeader(
+        connection: Connection,
+    ): Promise<void> {
+        if (this.parentName.toString() === PublicKey.default.toString()) {
+            this.isValid = true;
+            return;
+        }
+        const parentNameRecordHeader = await NameRecordHeader.fromAccountAddress(
+            connection,
+            this.parentName,
+        );
+        this.updateGracePeriod(parentNameRecordHeader);
+    }
+
+    updateGracePeriod(parentNameRecord: NameRecordHeader | undefined): void {
+        const currentTime = Date.now();
+        const defaultGracePeriod = 50 * 24 * 60 * 60 * 1000;
+        const gracePeriod =
+            parentNameRecord?.expiresAt.getTime() || defaultGracePeriod;
+
+        this.isValid =
+            this.expiresAt.getTime() === 0 ||
+            this.expiresAt.getTime() + gracePeriod > currentTime;
+
+        if (!this.isValid) {
+            this.owner = undefined;
+        }
+    }
+
     constructor(obj: {
         parentName: Uint8Array;
         owner: Uint8Array;
@@ -16,24 +68,32 @@ export class NameRecordHeader {
     }) {
         this.parentName = new PublicKey(obj.parentName);
         this.nclass = new PublicKey(obj.nclass);
-        this.expiresAt = new Date(
-            new BinaryReader(Buffer.from(obj.expiresAt)).readU64().toNumber() *
-                1000,
-        );
-        this.createdAt = new Date(
-            new BinaryReader(Buffer.from(obj.createdAt)).readU64().toNumber() *
-                1000,
-        );
-        this.nonTransferable = obj.nonTransferable[0] !== 0;
-        // grace period  = 45 days * 24 hours * 60 minutes * 60 seconds * 1000 millie seconds = 3_888_000 seconds
+
+        // Convert expiresAt bytes to number using DataView
+        const expiresAtArrayBuffer = new ArrayBuffer(obj.expiresAt.length);
+        const expiresAtViewUint8Array = new Uint8Array(expiresAtArrayBuffer);
+        expiresAtViewUint8Array.set(obj.expiresAt);
+        const expiresAtView = new DataView(expiresAtArrayBuffer);
+        const expiresAtTimestamp = Number(expiresAtView.getBigUint64(0, true));
+        this.expiresAt = new Date(expiresAtTimestamp * 1000);
+
+        // Convert createdAt bytes to number using DataView
+        const createdAtArrayBuffer = new ArrayBuffer(obj.createdAt.length);
+        const createdAtViewUint8Array = new Uint8Array(createdAtArrayBuffer);
+        createdAtViewUint8Array.set(obj.createdAt);
+        const createdAtView = new DataView(createdAtArrayBuffer);
+        const createdAtTimestamp = Number(createdAtView.getBigUint64(0, true));
+        this.createdAt = new Date(createdAtTimestamp * 1000);
+
+        this.nonTransferable = obj.nonTransferable[0] === 1;
+
+        // grace period = 45 days * 24 hours * 60 minutes * 60 seconds * 1000 millie seconds
         const gracePeriod = 45 * 24 * 60 * 60 * 1000;
         this.isValid =
-            new BinaryReader(Buffer.from(obj.expiresAt))
-                .readU64()
-                .toNumber() === 0
+            expiresAtTimestamp === 0
                 ? true
-                : this.expiresAt.getTime() + gracePeriod >
-                  new Date(Date.now()).getTime();
+                : this.expiresAt > new Date(Date.now() + gracePeriod);
+
         this.owner = this.isValid ? new PublicKey(obj.owner) : undefined;
     }
 
@@ -52,24 +112,18 @@ export class NameRecordHeader {
     /**
      * NameRecordHeader Schema across all alt name service accounts
      */
-    static schema: Schema = new Map([
-        [
-            NameRecordHeader,
-            {
-                kind: 'struct',
-                fields: [
-                    ['discriminator', [8]],
-                    ['parentName', [32]],
-                    ['owner', [32]],
-                    ['nclass', [32]],
-                    ['expiresAt', [8]],
-                    ['createdAt', [8]],
-                    ['nonTransferable', [1]],
-                    ['padding', [79]],
-                ],
-            },
-        ],
-    ]);
+    static schema: Schema = {
+        struct: {
+            discriminator: { array: { type: "u8", len: 8 } },
+            parentName: { array: { type: "u8", len: 32 } },
+            owner: { array: { type: "u8", len: 32 } },
+            nclass: { array: { type: "u8", len: 32 } },
+            expiresAt: { array: { type: "u8", len: 8 } },
+            createdAt: { array: { type: "u8", len: 8 } },
+            nonTransferable: { array: { type: "u8", len: 1 } },
+            padding: { array: { type: "u8", len: 79 } },
+        },
+    };
 
     /**
      * Returns the minimum size of a {@link Buffer} holding the serialized data of
@@ -95,13 +149,26 @@ export class NameRecordHeader {
             return undefined;
         }
 
-        const res: NameRecordHeader = deserializeUnchecked(
+        const decodedData = deserialize(
             this.schema,
-            NameRecordHeader,
-            nameAccount.data,
-        );
-
+            Uint8Array.from(nameAccount.data),
+        ) as {
+            discriminator: number[];
+            parentName: Uint8Array;
+            owner: Uint8Array;
+            nclass: Uint8Array;
+            expiresAt: Uint8Array;
+            createdAt: Uint8Array;
+            nonTransferable: Uint8Array;
+        };
+        const res = new NameRecordHeader(decodedData);
         res.data = nameAccount.data?.subarray(this.byteSize);
+
+        if (res.parentName.toString() !== ROOT_ANS_PUBLIC_KEY.toString()) {
+            await res.initializeParentNameRecordHeader(connection);
+        } else {
+            res.isValid = true;
+        }
 
         return res;
     }
@@ -142,11 +209,21 @@ export class NameRecordHeader {
     public static fromAccountInfo(
         nameAccountAccountInfo: AccountInfo<Buffer>,
     ): NameRecordHeader {
-        const res: NameRecordHeader = deserializeUnchecked(
+
+        const decodedData = deserialize(
             this.schema,
-            NameRecordHeader,
-            nameAccountAccountInfo.data,
-        );
+            Uint8Array.from(nameAccountAccountInfo.data),
+        ) as {
+            discriminator: number[];
+            parentName: Uint8Array;
+            owner: Uint8Array;
+            nclass: Uint8Array;
+            expiresAt: Uint8Array;
+            createdAt: Uint8Array;
+            nonTransferable: Uint8Array;
+        };
+
+        const res = new NameRecordHeader(decodedData);
         res.data = nameAccountAccountInfo.data?.subarray(this.byteSize);
         return res;
     }
