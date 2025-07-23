@@ -4,9 +4,10 @@
       "ESNext",
       "DOM"
     ],
-    "module": "NodeNext",
-    "target": "ESNext",
+    "module": "esnext",
+    "target": "es2020",
     "esModuleInterop": true,
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "declaration": true,
     "outDir": "./dist",

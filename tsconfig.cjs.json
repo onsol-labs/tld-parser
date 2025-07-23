@@ -2,8 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
-    "target": "ESNext",
-    "module": "CommonJS",
+    "target": "es2020",
+    "module": "commonjs",
     "outDir": "dist/cjs",
     "declarationDir": "dist/types",
     "allowSyntheticDefaultImports": true // Enable synthetic default imports

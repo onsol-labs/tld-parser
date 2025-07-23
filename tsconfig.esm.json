@@ -2,8 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "esnext",
+    "moduleResolution": "node",
     "outDir": "dist/esm",
     "declarationDir": "dist/types",
     "allowSyntheticDefaultImports": true // Enable synthetic default imports
