@@ -128,6 +128,7 @@ export async function findOwnedNameAccountsForUser(
 
     const accounts = await connection.getProgramAccounts(ANS_PROGRAM_ID, {
         filters: filters,
+        dataSlice: { offset: 0, length: 200 }
     });
 
     return accounts.map(a => {
@@ -228,6 +229,7 @@ export async function findAllDomainsForTld(
 
     const accounts = await connection.getProgramAccounts(ANS_PROGRAM_ID, {
         filters: filters,
+        dataSlice: { offset: 8, length: 40 },
     });
     return accounts.map((a: any) => a.pubkey);
 }
