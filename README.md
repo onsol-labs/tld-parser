@@ -15,7 +15,7 @@ The TLD Parser supports two primary implementations:
 * Monad Testnet (EVM)
 
 ## Installation
-Add @onsol/tld-parser to package.json or `yarn add @onsol/tld-parser`
+Add @onsol/tldparser to package.json or `yarn add @onsol/tldparser` or `npm install @onsol/tldparser`
 
 ## Usage Examples
 Below are examples demonstrating key functions for both Solana and EVM implementations. These mirror the test cases provided.
