@@ -68,7 +68,7 @@ const dnsRecord = await NameRecordHeader.fromAccountAddress(connection, recordPu
 // => ipfs://...
 
 // Get all TLDs
-const allTlds = await getAllTlds(connection);
+const allTlds = await getAllTld(connection);
 // => [{ tld: '.bonk', parentAccount: "2j6gC6MMrnw4JJpAKR5FyyUFdxxvdZdG2sg4FrqfyWi5" }, ...]
 ```
 ### EVM (Monad) Examples
