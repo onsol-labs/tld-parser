@@ -12,7 +12,7 @@ The TLD Parser supports two primary implementations:
 ## Supported Chains
 * Solana (SVM)
 * Eclipse (SVM)
-* Monad Testnet (EVM)
+* Monad (EVM)
 
 ## Installation
 Add @onsol/tldparser to package.json or `yarn add @onsol/tldparser` or `npm install @onsol/tldparser`
@@ -78,9 +78,9 @@ import { TldParser, NetworkWithRpc } from '@onsol/tldparser';
 import { getAddress } from 'ethers';
 
 // Constants
-const RPC_URL = 'https://testnet-rpc.monad.xyz';
+const RPC_URL = 'https://monad.xyz';
 const PUBLIC_KEY = getAddress('0x94Bfb92da83B27B39370550CA038Af96d182462f');
-const settings = new NetworkWithRpc('monad', 10143, RPC_URL);
+const settings = new NetworkWithRpc('monad', 143, RPC_URL);
 
 // Initialize
 const parser = new TldParser(settings, 'monad');
