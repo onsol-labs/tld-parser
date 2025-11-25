@@ -141,6 +141,7 @@ Represents domain data on EVM chains:
 * `main_domain_address: string`: Owner address.
 * `tld: string`: Top-level domain (e.g., ".mon").
 * `transferrable: boolean`: Whether the domain can be transferred.
+* `owner: string`: Owner address.
 
 ## Notes
 Backwards Compatibility: The TldParser class ensures compatibility with previous versions while supporting multi-chain expansion.
