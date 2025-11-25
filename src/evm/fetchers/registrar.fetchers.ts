@@ -17,7 +17,7 @@ type NameData = {
     expiry: number;
     frozen: boolean;
 };
-export type UserNft = NameData & { id: bigint; url?: string };
+export type UserNft = NameData & { id: bigint; url?: string; owner: string };
 
 type ScData = {
     name: string;
@@ -43,7 +43,7 @@ async function getNameData(params: {
 
     const contract = new Contract(
         registrarAddress,
-        ['function nameData(string) view returns ((string, uint256, bool))'],
+        ['function nameData(string) view returns ((string, uint256, bool, string, address))'],
         provider,
     );
     const nameData = await contract.nameData(name);
@@ -117,8 +117,7 @@ async function getUsersNfts(params: {
         registrarAddress,
         [
             'function getUserNfts(address) view returns (uint256[])',
-            'function nameData(uint256) view returns ((string, uint256, bool))',
-            'function tokenURI(uint256) view returns (string)',
+            'function nameData(uint256) view returns ((string, uint256, bool, string, address))',
         ],
         provider,
     );
@@ -129,17 +128,15 @@ async function getUsersNfts(params: {
         nfts.map(async tokenId => {
             const tokenDataRaw = (await contract.nameData(
                 Typed.uint256(tokenId),
-            )) as [unknown, unknown, unknown];
+            )) as [unknown, unknown, unknown, unknown, unknown];
 
-            const tokenUrl =
-                withTokenUrl &&
-                ((await contract.tokenURI(tokenId)) as unknown as string);
             return {
                 name: tokenDataRaw[0] as string,
                 expiry: parseInt(tokenDataRaw[1] as string),
                 frozen: tokenDataRaw[2] as boolean,
-                url: tokenUrl,
+                url: tokenDataRaw[3] as string,
                 id: tokenId,
+                owner: tokenDataRaw[4] as string,
             };
         }),
     );
@@ -161,8 +158,7 @@ async function getUserNftData(params: {
     const contract = new Contract(
         registrarAddress,
         [
-            'function nameData(uint256) view returns ((string, uint256, bool))',
-            'function tokenURI(uint256) view returns (string)',
+            'function nameData(uint256) view returns ((string, uint256, bool, string, address))',
         ],
         provider,
     );
@@ -180,15 +176,17 @@ async function getUserNftData(params: {
         unknown,
         unknown,
         unknown,
+        unknown,
+        unknown,
     ];
-    const tokenUrl = (await contract.tokenURI(tokenId)) as unknown as string;
 
     return {
         name: tokenDataRaw[0] as string,
         expiry: BigInt(tokenDataRaw[1] as string),
         frozen: tokenDataRaw[2] as boolean,
         id: tokenId,
-        url: tokenUrl,
+        url: tokenDataRaw[3] as string,
+        owner: tokenDataRaw[4] as string,
     };
 }
 
@@ -207,7 +205,7 @@ async function getMainDomainRaw(params: {
         const reverseNode = ensNamehash(
             address.substring(2).toLowerCase() + '.addr.reverse',
         );
-        const resolverAddress = '0x741b2C8254495EbB84440A768bE0B5bACA62F6e8';
+        const resolverAddress = '0x314582158A0a72802aD8F6EeE6243C73dCf1F562';
 
         const resolverContract = new Contract(
             resolverAddress,

@@ -76,6 +76,7 @@ export class TldParserEvm implements ITldParser {
                 main_domain_address: '',
                 tld: domain.tld.tld,
                 transferrable: !domain.nft.frozen,
+                owner: domain.nft.owner,
             };
         });
     }
@@ -110,6 +111,7 @@ export class TldParserEvm implements ITldParser {
                 main_domain_address: '',
                 tld: domain.tld.tld,
                 transferrable: !domain.nft.frozen,
+                owner: domain.nft.owner,
             };
         });
     }

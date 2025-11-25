@@ -6,6 +6,7 @@ export const EVM_CHAINS = {
     SEPOLIA: 'sepolia',
     AMOY: 'amoy',
     MONAD: 'monad',
+    MONAD_TESTNET: 'monad_testnet'
 } as const;
 
 export type EvmChainType = EnumValues<typeof EVM_CHAINS>;

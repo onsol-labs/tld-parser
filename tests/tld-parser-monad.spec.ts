@@ -7,7 +7,7 @@ import {
 } from '../src/evm/utils';
 
 const PUBLIC_KEY = getAddress('0x94Bfb92da83B27B39370550CA038Af96d182462f');
-const RPC_URL = 'https://testnet-rpc.monad.xyz';
+const RPC_URL = "";
 
 describe('tldParser EVM tests', () => {
     it('should correctly parse a domain label', async () => {
@@ -25,26 +25,26 @@ describe('tldParser EVM tests', () => {
     });
 
     it('should perform fetching of all user domains', async () => {
-        const settings = new NetworkWithRpc('monad', 10143, RPC_URL);
+        const settings = new NetworkWithRpc('monad', 143, RPC_URL);
         const parser = new TldParser(settings, 'monad');
 
         const ownedDomainsReceived = await parser.getAllUserDomains(PUBLIC_KEY);
-        expect(ownedDomainsReceived).toHaveLength(13);
+        expect(ownedDomainsReceived).toHaveLength(3);
     });
 
     it('should perform fetching of all user domains from a specific domain', async () => {
-        const settings = new NetworkWithRpc('monad', 10143, RPC_URL);
+        const settings = new NetworkWithRpc('monad', 143, RPC_URL);
         const parser = new TldParser(settings, 'monad');
 
         const ownedDomainsReceived = await parser.getAllUserDomainsFromTld(
             PUBLIC_KEY,
             '.mon',
         );
-        expect(ownedDomainsReceived).toHaveLength(4);
+        expect(ownedDomainsReceived).toHaveLength(2);
     });
 
     it('should perform fetching of owner from domain.tld', async () => {
-        const settings = new NetworkWithRpc('monad', 10143, RPC_URL);
+        const settings = new NetworkWithRpc('monad', 143, RPC_URL);
         const parser = new TldParser(settings, 'monad');
 
         const ownedDomainsReceived = await parser.getOwnerFromDomainTld(
@@ -54,16 +54,16 @@ describe('tldParser EVM tests', () => {
     });
 
     it('should perform fetching of name record from domain.tld', async () => {
-        const settings = new NetworkWithRpc('monad', 10143, RPC_URL);
+        const settings = new NetworkWithRpc('monad', 143, RPC_URL);
         const parser = new TldParser(settings, 'monad');
         const domainName = 'miester.mon';
         const ownedDomainsReceived = await parser.getNameRecordFromDomainTld(
             domainName,
         );
         const expectedNameRecord = <NameRecord>{
-            created_at: '1772642402',
+            created_at: '1795616523',
             domain_name: 'miester',
-            expires_at: '1772642702',
+            expires_at: '1795616823',
             main_domain_address: PUBLIC_KEY,
             tld: '.mon',
             transferrable: true,
@@ -72,15 +72,15 @@ describe('tldParser EVM tests', () => {
     });
 
     it('should perform fetching of main domain from useraccount', async () => {
-        const settings = new NetworkWithRpc('monad', 10143, RPC_URL);
+        const settings = new NetworkWithRpc('monad', 143, RPC_URL);
         const parser = new TldParser(settings, 'monad');
         const domainName = PUBLIC_KEY;
 
         const ownedDomainsReceived = await parser.getMainDomain(domainName) ;
         const expectedNameRecord = <NameRecord>{
-            created_at: '1772642402',
+            created_at: '1795616523',
             domain_name: 'miester',
-            expires_at: '1772642702',
+            expires_at: '1795616823',
             main_domain_address: PUBLIC_KEY,
             tld: '.mon',
             transferrable: true,
