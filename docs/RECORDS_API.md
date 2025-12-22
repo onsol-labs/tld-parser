@@ -20,8 +20,8 @@ npm/yarn install @onsol/tldparser
 ## Quick Start
 
 ```typescript
-import { TldParser, Record, NetworkWithRpc } from '@onsol/tldparser';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { TldParserSvm, TldParserEvm, Record, NetworkWithRpc } from '@onsol/tldparser';
+import { Connection } from '@solana/web3.js';
 
 // Solana
 const connection = new Connection('https://api.mainnet-beta.solana.com');

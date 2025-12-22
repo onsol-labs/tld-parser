@@ -14,9 +14,9 @@ export type EvmChainData = {
     rootContractAddress: string;
     registryContractAddress: string;
     /** ANS resolver contract address for text records */
-    resolverAddress: string;
+    resolverAddress?: string;
     /** ANS reverse registrar address for reverse lookups */
-    reverseRegistrarAddress: string;
+    reverseRegistrarAddress?: string;
 };
 
 export type EvmChainConfig = { [key in EvmChainType]?: EvmChainData };
