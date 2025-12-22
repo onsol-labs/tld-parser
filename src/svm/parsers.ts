@@ -18,10 +18,13 @@ import {
     getParsedAllDomainsNftAccountsByOwner,
     getUserNfts,
     performReverseLookupBatched,
+    getMultipleMainDomainsChecked,
 } from './utils';
 import { MULTIPLE_ACCOUNT_INFO_MAX } from './constants';
 import { NameAccountAndDomain, getDomainKey } from './name-record-handler';
 import { ITldParser } from '../parsers.interface';
+import { Record, RecordResult, AvatarOptions, ALL_RECORDS } from '../types/records';
+import { resolveAvatarUrl } from '../utils/avatar';
 import async from 'async';
 
 export class TldParserSvm implements ITldParser {
@@ -575,5 +578,129 @@ export class TldParserSvm implements ITldParser {
             );
         }
         return parsedNameAccountsAndDomains;
+    }
+
+    /**
+     * Get a single record for a domain.
+     * Uses sub-account derivation: Record.Twitter + "." + domain → "Twitter.miester.poor"
+     *
+     * @param domainTld Full domain like "miester.poor"
+     * @param record The record type to fetch
+     * @returns Record value or null if not set
+     */
+    async getRecord(domainTld: string, record: Record): Promise<string | null> {
+        try {
+            const recordKey = record.valueOf(); // e.g., "Twitter"
+            const { pubkey } = await getDomainKey(
+                recordKey + '.' + domainTld,
+                true,
+            );
+
+            const accountInfo = await this.connection.getAccountInfo(pubkey);
+            if (!accountInfo) return null;
+
+            const nameRecord = NameRecordHeader.fromAccountInfo(accountInfo);
+            if (!nameRecord?.data) return null;
+
+            // Trim trailing null bytes
+            const idx = nameRecord.data.indexOf(0x00);
+            const trimmedData =
+                idx >= 0 ? nameRecord.data.subarray(0, idx) : nameRecord.data;
+
+            return trimmedData.toString();
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Get multiple records for a domain (batched using getMultipleAccountsInfo).
+     *
+     * @param domainTld Full domain like "miester.poor"
+     * @param records Array of record types (default: all records)
+     * @returns Object with record values
+     */
+    async getRecords(
+        domainTld: string,
+        records?: Record[],
+    ): Promise<RecordResult> {
+        const recordTypes = records ?? ALL_RECORDS;
+
+        // Derive all record account pubkeys
+        const pubkeys = await Promise.all(
+            recordTypes.map(async r => {
+                const { pubkey } = await getDomainKey(
+                    r.valueOf() + '.' + domainTld,
+                    true,
+                );
+                return pubkey;
+            }),
+        );
+
+        // Batch fetch all accounts
+        const accountInfos =
+            await this.connection.getMultipleAccountsInfo(pubkeys);
+
+        // Parse results
+        const result: RecordResult = {};
+        recordTypes.forEach((record, i) => {
+            const accountInfo = accountInfos[i];
+            if (!accountInfo) {
+                result[record] = null;
+                return;
+            }
+
+            try {
+                const nameRecord = NameRecordHeader.fromAccountInfo(accountInfo);
+                if (nameRecord?.data) {
+                    const idx = nameRecord.data.indexOf(0x00);
+                    const trimmedData =
+                        idx >= 0
+                            ? nameRecord.data.subarray(0, idx)
+                            : nameRecord.data;
+                    result[record] = trimmedData.toString();
+                } else {
+                    result[record] = null;
+                }
+            } catch {
+                result[record] = null;
+            }
+        });
+
+        return result;
+    }
+
+    /**
+     * Get avatar with gateway resolution.
+     * Fetches the Pic record and resolves IPFS/Arweave URLs to HTTP.
+     *
+     * @param domainTld Full domain like "miester.poor"
+     * @param options Gateway URLs for IPFS/Arweave
+     * @returns HTTP-accessible avatar URL or null
+     */
+    async getAvatar(
+        domainTld: string,
+        options?: AvatarOptions,
+    ): Promise<string | null> {
+        const picRecord = await this.getRecord(domainTld, Record.Pic);
+        if (!picRecord) return null;
+
+        return resolveAvatarUrl(picRecord, options);
+    }
+
+    /**
+     * Get main domains for multiple addresses.
+     * Uses getMultipleMainDomainsChecked for efficiency.
+     *
+     * @param addresses Array of wallet addresses (PublicKey strings)
+     * @returns Array of main domain names (null for addresses without main domain)
+     */
+    async getMainDomains(addresses: string[]): Promise<(string | null)[]> {
+        const results = await getMultipleMainDomainsChecked(
+            this.connection,
+            addresses,
+        );
+
+        return results.map(r => r.mainDomain ?? null);
     }
 }

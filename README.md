@@ -70,15 +70,35 @@ const dnsRecord = await NameRecordHeader.fromAccountAddress(connection, recordPu
 // Get all TLDs
 const allTlds = await getAllTld(connection);
 // => [{ tld: '.bonk', parentAccount: "2j6gC6MMrnw4JJpAKR5FyyUFdxxvdZdG2sg4FrqfyWi5" }, ...]
+
+// Get a single record (NEW)
+const twitter = await parser.getRecord(DOMAIN, Record.Twitter);
+// => "@miester"
+
+// Get multiple records at once (batched)
+const records = await parser.getRecords(DOMAIN, [Record.Twitter, Record.Discord, Record.Pic]);
+// => { Twitter: "@miester", Discord: "miester#1234", Pic: "ipfs://Qm..." }
+
+// Get avatar with automatic gateway resolution
+const avatar = await parser.getAvatar(DOMAIN);
+// => "https://ipfs.io/ipfs/Qm..." (resolved from ipfs://)
+
+// Get main domain for an address
+const mainDomain = await parser.getMainDomain(OWNER);
+// => MainDomain { nameAccount, domain: "miester.poor" }
+
+// Get main domains for multiple addresses (batched)
+const mainDomains = await parser.getMainDomains([OWNER.toString(), '...']);
+// => ["miester.poor", null]
 ```
 ### EVM (Monad) Examples
 ```javascript
 
-import { TldParser, NetworkWithRpc } from '@onsol/tldparser';
+import { TldParser, NetworkWithRpc, Record } from '@onsol/tldparser';
 import { getAddress } from 'ethers';
 
 // Constants
-const RPC_URL = 'https://monad.xyz';
+const RPC_URL = 'https://rpc.monad.xyz';
 const PUBLIC_KEY = getAddress('0x94Bfb92da83B27B39370550CA038Af96d182462f');
 const settings = new NetworkWithRpc('monad', 143, RPC_URL);
 
@@ -100,6 +120,26 @@ const owner = await parser.getOwnerFromDomainTld('miester.mon');
 // Get name record
 const nameRecord = await parser.getNameRecordFromDomainTld('miester.mon');
 // => NameRecord { created_at, domain_name, expires_at, main_domain_address, tld, transferrable }
+
+// Get a single record (NEW)
+const twitter = await parser.getRecord('miester.mon', Record.Twitter);
+// => "@miester"
+
+// Get multiple records at once (parallel fetches)
+const records = await parser.getRecords('miester.mon', [Record.Twitter, Record.Discord, Record.Pic]);
+// => { Twitter: "@miester", Discord: "miester#1234", Pic: "ipfs://Qm..." }
+
+// Get avatar with automatic gateway resolution
+const avatar = await parser.getAvatar('miester.mon');
+// => "https://ipfs.io/ipfs/Qm..." (resolved from ipfs://)
+
+// Get main domain for an address
+const mainDomain = await parser.getMainDomain(PUBLIC_KEY);
+// => NameRecord { domain_name: "miester", tld: ".mon", ... }
+
+// Get main domains for multiple addresses (batched)
+const mainDomains = await parser.getMainDomains([PUBLIC_KEY, '0x...']);
+// => ["miester.mon", null]
 ```
 
 ## API Reference
@@ -113,6 +153,66 @@ const nameRecord = await parser.getNameRecordFromDomainTld('miester.mon');
 * `getNameRecordFromDomainTld(domainTld)`: Retrieves detailed record data for a domain.
 
 * `getMainDomain(userAddress)`: Retrieves the user's main domain.
+
+### Records API (Available on Both Chains)
+* `getRecord(domainTld, record)`: Get a single record (e.g., Twitter, Discord, Pic) for a domain.
+
+* `getRecords(domainTld, records?)`: Get multiple records at once. Uses batched fetching (SVM) or parallel calls (EVM). Pass an array of `Record` types or omit to fetch all.
+
+* `getAvatar(domainTld, options?)`: Get the avatar URL with automatic gateway resolution. Converts `ipfs://`, `ar://`, `arwv://` to HTTP URLs.
+
+* `getMainDomains(addresses)`: Get main domains for multiple addresses. Uses batched fetching (SVM) or parallel calls (EVM). Returns `null` for addresses without a main domain.
+
+### Available Record Types
+```typescript
+import { Record } from '@onsol/tldparser';
+
+// Social
+Record.Twitter    // Twitter/X handle
+Record.Discord    // Discord username
+Record.Github     // GitHub username
+Record.Telegram   // Telegram handle
+Record.Reddit     // Reddit username
+
+// Profile
+Record.Pic        // Avatar/profile picture
+Record.Email      // Email address
+Record.Url        // Website URL
+
+// Crypto Addresses
+Record.SOL        // Solana address
+Record.ETH        // Ethereum address
+Record.BTC        // Bitcoin address
+// ... and more (APTOS, NEAR, BASE, SUI, etc.)
+
+// Storage
+Record.IPFS       // IPFS content hash
+Record.ARWV       // Arweave transaction ID
+```
+
+### Avatar Resolution
+The `getAvatar()` method automatically resolves various URL schemes to HTTP:
+```typescript
+// Input → Output
+"ipfs://QmXxx"     → "https://ipfs.io/ipfs/QmXxx"
+"ar://txId"        → "https://arweave.net/txId"
+"arwv://txId"      → "https://arweave.net/txId"
+"https://..."      → "https://..." (unchanged)
+
+// NFT avatars (Solana)
+"mpl:<mint>"       → "https://alldomains.id/api/nft/mpl/<mint>"
+"core:<asset>"     → "https://alldomains.id/api/nft/core/<asset>"
+
+// NFT avatars (EVM)
+"eip155:1/erc721:0x.../123" → "https://alldomains.id/api/nft/evm/..."
+
+// Custom gateways
+const avatar = await parser.getAvatar('miester.poor', {
+    ipfsGateway: 'https://cloudflare-ipfs.com',
+    arweaveGateway: 'https://arweave.net',
+    nftGateway: 'https://alldomains.id'
+});
+```
 
 ### Solana-Specific Methods
 * `getTldFromParentAccount(parentAccount)`: Retrieves the TLD from a parent account key.
@@ -142,6 +242,3 @@ Represents domain data on EVM chains:
 * `tld: string`: Top-level domain (e.g., ".mon").
 * `transferrable: boolean`: Whether the domain can be transferred.
 * `owner: string`: Owner address.
-
-## Notes
-Backwards Compatibility: The TldParser class ensures compatibility with previous versions while supporting multi-chain expansion.

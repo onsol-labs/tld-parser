@@ -92,3 +92,32 @@ function ansNameSplit(name: string): Array<Uint8Array> {
     comps.push(bytes.slice(last - 1));
     return comps;
 }
+
+/**
+ * Compute the reverse node hash for an address.
+ * Used for reverse resolution (address → name).
+ *
+ * The reverse node is: namehash(lowercase(address).addr.reverse)
+ *
+ * @param address The EVM address (with or without 0x prefix)
+ * @returns The reverse node hash
+ */
+export function getReverseNode(address: string): string {
+    // Remove 0x prefix and lowercase
+    const addr = address.toLowerCase().replace('0x', '');
+
+    // Compute reverse name: addr.addr.reverse
+    const reverseName = `${addr}.addr.reverse`;
+
+    // Use standard namehash (not ansNamehash since this is ENS-standard)
+    let result: string | Uint8Array = ZeroHash;
+
+    // Split by dots and hash from right to left
+    const parts = reverseName.split('.');
+    for (let i = parts.length - 1; i >= 0; i--) {
+        const labelHash = keccak256(toUtf8Bytes(parts[i]));
+        result = keccak256(concat([result, labelHash]));
+    }
+
+    return hexlify(result);
+}

@@ -5,6 +5,7 @@ import { NameAccountAndDomain } from './svm/name-record-handler';
 import { MainDomain } from './svm/state/main-domain';
 import { NameRecordHeader } from './svm/state/name-record-header';
 import { NameRecord } from 'evm/types/NameRecordHeader';
+import { Record, RecordResult, AvatarOptions } from './types/records';
 
 export interface ITldParser {
     connection: Connection | Provider;
@@ -116,4 +117,46 @@ export interface ITldParser {
     getParsedAllUserDomains(
         userAccount: PublicKey | string,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]>;
+
+    /**
+     * Get a single record for a domain.
+     * SVM: Fetches from sub-account (e.g., Twitter.miester.poor)
+     * EVM: Fetches from resolver contract text() method
+     *
+     * @param domainTld Full domain like "miester.mon" or "miester.poor"
+     * @param record The record type to fetch
+     * @returns Record value or null if not set
+     */
+    getRecord(domainTld: string, record: Record): Promise<string | null>;
+
+    /**
+     * Get multiple records for a domain (batched for efficiency).
+     * SVM: Uses getMultipleAccountsInfo for batch fetching
+     * EVM: Uses parallel contract calls
+     *
+     * @param domainTld Full domain like "miester.mon"
+     * @param records Array of record types (default: all records)
+     * @returns Object with record values
+     */
+    getRecords(domainTld: string, records?: Record[]): Promise<RecordResult>;
+
+    /**
+     * Get resolved avatar URL (IPFS/Arweave → HTTP gateway).
+     * Automatically resolves ipfs://, ar://, arwv:// to HTTP URLs.
+     *
+     * @param domainTld Full domain like "miester.mon"
+     * @param options Gateway URLs for IPFS/Arweave
+     * @returns HTTP-accessible avatar URL or null
+     */
+    getAvatar(domainTld: string, options?: AvatarOptions): Promise<string | null>;
+
+    /**
+     * Get main domains for multiple addresses.
+     * SVM: Uses getMultipleAccountsInfo for efficiency
+     * EVM: Uses parallel contract calls
+     *
+     * @param addresses Array of wallet addresses
+     * @returns Array of main domain names (null for addresses without main domain)
+     */
+    getMainDomains(addresses: string[]): Promise<(string | null)[]>;
 }

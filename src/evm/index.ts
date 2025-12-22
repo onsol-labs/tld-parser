@@ -6,3 +6,4 @@ export * from './types/EnumValues';
 export * from './types/EvmChainData';
 export * from './types/NameRecordHeader';
 export * from './utils';
+export * from './fetchers/resolver.fetchers';

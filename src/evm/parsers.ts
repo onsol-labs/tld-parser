@@ -6,6 +6,7 @@ import { MainDomain, NameAccountAndDomain, NameRecordHeader } from '../svm';
 import { registrarFetchers } from './fetchers/registrar.fetchers';
 import { registryFetchers } from './fetchers/registry.fetchers';
 import { rootFetchers, TLD } from './fetchers/root.fetchers';
+import { resolverFetchers } from './fetchers/resolver.fetchers';
 import { Address, isValidAddress } from './types/Address';
 import { AddressAndDomain } from './types/AddressAndDomain';
 import { EvmChainData } from './types/EvmChainData';
@@ -14,8 +15,17 @@ import {
     labelhashFromLabel,
     ansNamehash,
     NetworkWithRpc,
+    getReverseNode,
 } from './utils';
 import { NameRecord } from './types/NameRecordHeader';
+import {
+    Record,
+    RecordResult,
+    AvatarOptions,
+    EVM_RECORD_KEYS,
+    ALL_RECORDS,
+} from '../types/records';
+import { resolveAvatarUrl } from '../utils/avatar';
 
 export class TldParserEvm implements ITldParser {
     connection: Provider;
@@ -274,6 +284,119 @@ export class TldParserEvm implements ITldParser {
                 domain: domain.tld.tld,
             };
         });
+    }
+
+    /**
+     * Get a single record for a domain using the resolver contract.
+     *
+     * @param domainTld Full domain like "miester.mon"
+     * @param record The record type to fetch
+     * @returns Record value or null if not set
+     */
+    async getRecord(domainTld: string, record: Record): Promise<string | null> {
+        if (!this.config.resolverAddress) {
+            return null;
+        }
+
+        const namehash = ansNamehash(domainTld);
+        const evmKey = EVM_RECORD_KEYS[record];
+
+        return resolverFetchers.getTextRecord(
+            this.connection,
+            this.config.resolverAddress as Address,
+            namehash,
+            evmKey,
+        );
+    }
+
+    /**
+     * Get multiple records for a domain (parallel fetches).
+     *
+     * @param domainTld Full domain like "miester.mon"
+     * @param records Array of record types (default: all records)
+     * @returns Object with record values
+     */
+    async getRecords(
+        domainTld: string,
+        records?: Record[],
+    ): Promise<RecordResult> {
+        if (!this.config.resolverAddress) {
+            return {};
+        }
+
+        const recordTypes = records ?? ALL_RECORDS;
+        const namehash = ansNamehash(domainTld);
+
+        const results = await Promise.all(
+            recordTypes.map(async record => {
+                const evmKey = EVM_RECORD_KEYS[record];
+                const value = await resolverFetchers.getTextRecord(
+                    this.connection,
+                    this.config.resolverAddress as Address,
+                    namehash,
+                    evmKey,
+                );
+                return { record, value };
+            }),
+        );
+
+        const result: RecordResult = {};
+        results.forEach(({ record, value }) => {
+            result[record] = value;
+        });
+
+        return result;
+    }
+
+    /**
+     * Get avatar with gateway resolution.
+     * Fetches the avatar record and resolves IPFS/Arweave URLs to HTTP.
+     *
+     * @param domainTld Full domain like "miester.mon"
+     * @param options Gateway URLs for IPFS/Arweave
+     * @returns HTTP-accessible avatar URL or null
+     */
+    async getAvatar(
+        domainTld: string,
+        options?: AvatarOptions,
+    ): Promise<string | null> {
+        const avatarRecord = await this.getRecord(domainTld, Record.Pic);
+        if (!avatarRecord) return null;
+
+        return resolveAvatarUrl(avatarRecord, options);
+    }
+
+    /**
+     * Get main domains for multiple addresses.
+     * Uses parallel contract calls.
+     *
+     * @param addresses Array of wallet addresses (0x addresses)
+     * @returns Array of main domain names (null for addresses without main domain)
+     */
+    async getMainDomains(addresses: string[]): Promise<(string | null)[]> {
+        if (!this.config.resolverAddress) {
+            return addresses.map(() => null);
+        }
+
+        const results = await Promise.all(
+            addresses.map(async address => {
+                const isValidAddr = isValidAddress(address);
+                if (!isValidAddr) {
+                    return null;
+                }
+
+                // Compute reverse node: addr.addr.reverse
+                const reverseNode = getReverseNode(address);
+
+                return resolverFetchers.getReverseName(
+                    this.connection,
+                    this.config.resolverAddress as Address,
+                    reverseNode,
+                );
+            }),
+        );
+
+        return results;
     }
 
     private async getUserNftFromTld(data: { userAccount: string; tld: TLD }) {

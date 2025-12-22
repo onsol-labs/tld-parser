@@ -91,10 +91,9 @@ describe('tldParser SVM tests', () => {
             (await getDomainKey(Record.Url + '.' + domain, true)).pubkey,
             (await getDomainKey(Record.IPFS + '.' + domain, true)).pubkey,
             (await getDomainKey(Record.ARWV + '.' + domain, true)).pubkey,
-            (await getDomainKey(Record.SHDW + '.' + domain, true)).pubkey,
         ];
         const nameRecords = await NameRecordHeader.fromMultipileAccountAddresses(connection, multiRecordPubkeys);
-        expect(nameRecords).toHaveLength(4);
+        expect(nameRecords).toHaveLength(3);
     });
 
     it('should perform fetching of main domain', async () => {

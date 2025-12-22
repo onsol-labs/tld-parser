@@ -1,28 +1,5 @@
 /**
- * List of ANS Records
+ * Re-export from shared types for backward compatibility
+ * @deprecated Import from '@onsol/tldparser' directly instead
  */
-export enum Record {
-    IPFS = "IPFS",
-    ARWV = "ARWV",
-    SOL = "SOL",
-    ETH = "ETH",
-    BTC = "BTC",
-    APTOS = "APTOS",
-    NEAR = "NEAR",
-    STACKS = "STACKS",
-    BASE = "BASE",
-    SUI = "SUI",
-    LATTICA = "Lattica",
-    LTC = "LTC",
-    DOGE = "DOGE",
-    Email = "Email",
-    Url = "Url",
-    Discord = "Discord",
-    Github = "Github",
-    Reddit = "Reddit",
-    Twitter = "Twitter",
-    Telegram = "Telegram",
-    Pic = "Pic",
-    SHDW = "SHDW",
-    POINT = "POINT",
-}
+export { Record, RecordResult, AvatarOptions, EVM_RECORD_KEYS, ALL_RECORDS } from '../../types/records';

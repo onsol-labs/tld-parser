@@ -9,6 +9,7 @@ import { TldParserSvm } from './svm/parsers';
 import { MainDomain } from './svm/state/main-domain';
 import { NameRecordHeader } from './svm/state/name-record-header';
 import { NameRecord } from 'evm';
+import { Record, RecordResult, AvatarOptions } from './types/records';
 
 /**
  * TldParser class
@@ -180,6 +181,54 @@ export class TldParser implements ITldParser {
         userAccount: PublicKey | string,
         concurrency: number = 10,
     ): Promise<NameAccountAndDomain[] | AddressAndDomain[]> {
+        throw new Error('Method not implemented.');
+    }
+
+    /**
+     * Get a single record for a domain.
+     *
+     * @param domainTld Full domain like "miester.mon" or "miester.poor"
+     * @param record The record type to fetch
+     */
+    async getRecord(
+        domainTld: string,
+        record: Record,
+    ): Promise<string | null> {
+        throw new Error('Method not implemented.');
+    }
+
+    /**
+     * Get multiple records for a domain (batched).
+     *
+     * @param domainTld Full domain like "miester.mon"
+     * @param records Array of record types (default: all records)
+     */
+    async getRecords(
+        domainTld: string,
+        records?: Record[],
+    ): Promise<RecordResult> {
+        throw new Error('Method not implemented.');
+    }
+
+    /**
+     * Get resolved avatar URL (IPFS/Arweave → HTTP gateway).
+     *
+     * @param domainTld Full domain like "miester.mon"
+     * @param options Gateway URLs for IPFS/Arweave
+     */
+    async getAvatar(
+        domainTld: string,
+        options?: AvatarOptions,
+    ): Promise<string | null> {
+        throw new Error('Method not implemented.');
+    }
+
+    /**
+     * Get main domains for multiple addresses.
+     *
+     * @param addresses Array of wallet addresses
+     */
+    async getMainDomains(_addresses: string[]): Promise<(string | null)[]> {
         throw new Error('Method not implemented.');
     }
 }
