@@ -25,7 +25,6 @@ import {
 } from './constants';
 import { Tag } from './types';
 import {
-    address,
     getAddressCodec,
     getProgramDerivedAddress,
 } from '@solana/addresses';
@@ -37,17 +36,12 @@ import {
 import {
     decodeNameRecordHeader,
     fetchMaybeNameRecordHeader,
-    fetchNameRecordHeader,
     getNameRecordHeaderSize,
 } from './state/name-record-header';
 import { fetchMaybeNftRecord } from './state/nft-record';
 import {
-    decodeMint,
-    decodeToken,
     getTokenCodec,
-    TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
-import { dataSlice } from 'ethers';
 import { decodeMainDomain } from './state/main-domain';
 
 export const addressCodec = getAddressCodec();
@@ -117,11 +111,8 @@ export async function getNameOwner(
  * @param name any string or domain name.
  */
 export async function getHashedName(name: string): Promise<Buffer> {
-    // const input = NameRecordHeader.HASH_PREFIX + name;
-    // const str = sha256(Buffer.from(input, 'utf8')).slice(2);
-    // return Buffer.from(str, 'hex');
     const data = utf8Codec.encode(HASH_PREFIX + name);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', Uint8Array.from(data));
     return Buffer.from(hashBuffer);
 }
 

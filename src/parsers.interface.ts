@@ -1,21 +1,16 @@
-import { Provider } from 'ethers';
-import { AddressAndDomain } from './evm/types/AddressAndDomain';
-import { NameAccountAndDomain } from './svm/name-record-handler';
-import { MainDomain } from './svm/state/main-domain';
-import { NameRecordHeader } from './svm/state/name-record-header';
-import { NameRecord } from 'evm/types/NameRecordHeader';
+import { NameAccountAndDomain } from './name-record-handler';
+import { MainDomain } from './state/main-domain';
+import { NameRecordHeader } from './state/name-record-header';
 import { Address, Rpc, SolanaRpcApi } from '@solana/kit';
 
 export interface ITldParser {
-    connection: Rpc<SolanaRpcApi> | Provider;
+    connection: Rpc<SolanaRpcApi>;
     /**
      * retrieves all nameAccounts for any user.
      *
      * @param userAccount user Address or string
      */
-    getAllUserDomains(
-        userAccount: Address | string,
-    ): Promise<Address[] | NameRecord[]>;
+    getAllUserDomains(userAccount: Address | string): Promise<Address[]>;
     /**
      * retrieves all nameaccounts for any user in a specific tld.
      *
@@ -25,16 +20,14 @@ export interface ITldParser {
     getAllUserDomainsFromTld(
         userAccount: Address | string,
         tld: string,
-    ): Promise<Address[] | NameRecord[]>;
+    ): Promise<Address[]>;
 
     /**
      * retrieves owner of a specific Name Account from domain.tld.
      *
      * @param domainTld full string of domain and tld e.g. "miester.poor"
      */
-    getOwnerFromDomainTld(
-        domainTld: string,
-    ): Promise<Address | undefined | string>;
+    getOwnerFromDomainTld(domainTld: string): Promise<Address | undefined>;
 
     /**
      * retrieves domainTld data a domain from domain.tld.
@@ -43,7 +36,7 @@ export interface ITldParser {
      */
     getNameRecordFromDomainTld(
         domainTld: string,
-    ): Promise<NameRecordHeader | NameRecord | undefined>;
+    ): Promise<NameRecordHeader | undefined>;
 
     /**
      * retrieves tld from parent name via TldHouse account.
@@ -68,9 +61,7 @@ export interface ITldParser {
      *
      * @param userAddress user Address or string
      */
-    getMainDomain(
-        userAddress: Address | string,
-    ): Promise<MainDomain | NameRecord>;
+    getMainDomain(userAddress: Address | string): Promise<MainDomain>;
     /**
      * retrieves all parsed domains as strings with name accounts in an array for user in a specific TLD.
      * in alphabetical order
@@ -81,7 +72,7 @@ export interface ITldParser {
     getParsedAllUserDomainsFromTldUnwrapped(
         userAccount: Address | string,
         tld: string,
-    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]>;
+    ): Promise<NameAccountAndDomain[]>;
 
     /**
      * retrieves all parsed domains and name accounts including NFTs in an array for any user in a specific TLD.
@@ -93,7 +84,7 @@ export interface ITldParser {
     getParsedAllUserDomainsFromTld(
         userAccount: Address | string,
         tld: string,
-    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]>;
+    ): Promise<NameAccountAndDomain[]>;
 
     /**
      * retrieves all parsed domains and name accounts for user.
@@ -104,7 +95,7 @@ export interface ITldParser {
      */
     getParsedAllUserDomainsUnwrapped(
         userAccount: Address | string,
-    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]>;
+    ): Promise<NameAccountAndDomain[]>;
 
     /**
      * retrieves all parsed domains and name accounts including NFTs for user.
@@ -115,5 +106,5 @@ export interface ITldParser {
      */
     getParsedAllUserDomains(
         userAccount: Address | string,
-    ): Promise<NameAccountAndDomain[] | AddressAndDomain[]>;
+    ): Promise<NameAccountAndDomain[]>;
 }
