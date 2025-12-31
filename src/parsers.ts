@@ -26,7 +26,7 @@ import pLimit from 'p-limit';
 import { ITldParser } from './parsers.interface';
 import { Address, fetchEncodedAccount, Rpc, SolanaRpcApi } from '@solana/kit';
 
-export class TldParserSvm implements ITldParser {
+export class TldParser implements ITldParser {
     connection: Rpc<SolanaRpcApi>;
     constructor(rpc: Rpc<SolanaRpcApi>) {
         this.connection = rpc;

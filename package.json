@@ -1,6 +1,6 @@
 {
   "name": "@onsol/tldparser-kit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "TLD House Solana Javascript API",
   "keywords": [
     "api",
@@ -54,6 +54,7 @@
     "@solana-program/token": "^0.9.0",
     "@solana/kit": "^5.1.0",
     "p-limit": "^7.2.0",
+    "ws": "^8.18.3",
     "yocto-queue": "^1.2.2"
   },
   "devDependencies": {

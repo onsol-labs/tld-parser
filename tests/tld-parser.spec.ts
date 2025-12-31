@@ -1,8 +1,8 @@
 import { createDefaultRpcTransport, createSolanaRpcFromTransport, Address, fetchEncodedAccounts, address } from '@solana/kit';
-import { MAIN_DOMAIN_DISCRIMINATOR, MainDomain, NAME_RECORD_HEADER_DISCRIMINATOR, NameRecordHeader, Record, TldParser, getDomainKey, getMainDomainEncoder, getMultipleMainDomainsChecked, getMainDomainChecked } from '../src';
+import { MAIN_DOMAIN_DISCRIMINATOR, MainDomain, NAME_RECORD_HEADER_DISCRIMINATOR, NameRecordHeader, Record, TldParser, getDomainKey, getMultipleMainDomainsChecked, getMainDomainChecked } from '../src';
 
 
-const RPC_URL = '';
+const RPC_URL = "";
 const transport = createDefaultRpcTransport({
     url: RPC_URL,
 });
@@ -17,7 +17,7 @@ const parentAccountOwner = 'ANgPRMKQHgH5Snx2K3VHCvHqFmrABcjTZUrqZBzDCtfA' as Add
 
 describe('tldParser SVM tests', () => {
     it('should perform fetching of a pending expiry domain', async () => {
-        const parser = new TldParser(connection, "solana");
+        const parser = new TldParser(connection);
         const domanTld = 'canwenot.abc';
         const ownerRecieved = await parser.getOwnerFromDomainTld(domanTld);
         expect(ownerRecieved).toStrictEqual(undefined);
@@ -53,7 +53,7 @@ describe('tldParser SVM tests', () => {
     it('should perform retrieval of all user domains', async () => {
         const parser = new TldParser(connection);
         const allDomainsReceived = await parser.getAllUserDomains(owner);
-        expect(allDomainsReceived).toHaveLength(79);
+        expect(allDomainsReceived).toHaveLength(86);
     });
 
     it('should perform retrieval of all user domains for poor tld', async () => {
@@ -120,13 +120,13 @@ describe('tldParser SVM tests', () => {
         const parser = new TldParser(connection);
         const allDomainsReceived = await parser.getParsedAllUserDomains(owner);
         // console.log(JSON.stringify(allDomainsReceived, null, 2))
-        expect(allDomainsReceived).toHaveLength(88);
+        expect(allDomainsReceived).toHaveLength(95);
     });
 
     it('should perform retrieval parsed domains of all user domains', async () => {
         const parser = new TldParser(connection);
         const allDomainsReceived = await parser.getParsedAllUserDomainsUnwrapped(owner);
-        expect(allDomainsReceived).toHaveLength(71);
+        expect(allDomainsReceived).toHaveLength(77);
     });
 
     it('should perform retrieval parsed domains of all user domains in a particular tld', async () => {
